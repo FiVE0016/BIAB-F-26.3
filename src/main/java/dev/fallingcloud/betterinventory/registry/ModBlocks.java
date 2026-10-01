@@ -16,8 +16,14 @@ public final class ModBlocks {
     public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES =
             DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, BetterInventory.MODID);
 
-    public static final DeferredBlock<BackpackBlock> BACKPACK = BLOCKS.register("backpack",
-            () -> new BackpackBlock(BlockBehaviour.Properties.of()
+    /**
+     * 26.3: the block's registry id has to be on the properties before the block is
+     * constructed, so registration goes through registerWithId instead of a plain
+     * supplier.
+     */
+    public static final DeferredBlock<BackpackBlock> BACKPACK = BLOCKS.registerWithId("backpack",
+            id -> new BackpackBlock(BlockBehaviour.Properties.of()
+                    .setId(id)
                     .strength(0.8f)
                     .sound(SoundType.WOOL)
                     .noOcclusion()));

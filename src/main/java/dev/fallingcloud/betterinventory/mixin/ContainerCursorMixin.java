@@ -3,6 +3,7 @@ package dev.fallingcloud.betterinventory.mixin;
 import dev.fallingcloud.betterinventory.logic.StackUpgradeService;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -22,13 +23,22 @@ import org.spongepowered.asm.mixin.injection.Redirect;
  *       {@code ItemStack#getMaxStackSize}, which our raised global ceiling would
  *       otherwise hand a full 1024.</li>
  * </ul>
+ *
+ * <p>26.3 adaptation: {@code AbstractContainerMenu#doClick} gained a
+ * {@link ContainerInput} parameter (an enum that replaces the old {@code ClickType})
+ * in front of the {@code Player}. {@code cursorMax} is a {@code @Redirect}, whose
+ * handler signature is the target invocation's arguments followed by the enclosing
+ * method's arguments, so the new parameter has to be mirrored here.
+ * {@code clampPickup} hooks {@code Slot#tryRemove(int, int, Player)}, whose signature
+ * is unchanged, so it needs no adaptation.
  */
 @Mixin(AbstractContainerMenu.class)
 public abstract class ContainerCursorMixin {
+
     @Redirect(
             method = "doClick",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/ItemStack;getMaxStackSize()I"))
-    private int betterinventory$cursorMax(ItemStack stack, int slotId, int button, Player player) {
+    private int betterinventory$cursorMax(ItemStack stack, int slotId, int button, ContainerInput input, Player player) {
         return Math.min(stack.getMaxStackSize(), StackUpgradeService.limitFor(player, stack));
     }
 

@@ -22,13 +22,15 @@ public final class ModItems {
     static {
         for (int i = 0; i < 5; i++) {
             final int level = i + 1;
-            BACKPACKS[i] = ITEMS.register("backpack_" + level,
-                    () -> new BackpackItem(level, ModBlocks.BACKPACK.get(), new Item.Properties().stacksTo(1)));
+            BACKPACKS[i] = ITEMS.registerWithId("backpack_" + level,
+                    id -> new BackpackItem(level, ModBlocks.BACKPACK.get(),
+                            new Item.Properties().setId(id).stacksTo(1)));
         }
         for (int i = 0; i < 7; i++) {
             final int tier = i;
-            STACK_UPGRADES[i] = ITEMS.register("stack_upgrade_" + (i + 1),
-                    () -> new StackUpgradeItem(tier, new Item.Properties().stacksTo(1)));
+            STACK_UPGRADES[i] = ITEMS.registerWithId("stack_upgrade_" + (i + 1),
+                    id -> new StackUpgradeItem(tier,
+                            new Item.Properties().setId(id).stacksTo(1)));
         }
     }
 
@@ -39,15 +41,17 @@ public final class ModItems {
     public static final DeferredItem<UpgradeItem> UPGRADE_PICKUP = upgrade(UpgradeItem.Kind.PICKUP);
 
     /** Personal (non-backpack) upgrades: grow the crafting tab's grid. */
-    public static final DeferredItem<CraftingUpgradeItem> CRAFTING_UPGRADE = ITEMS.register(
+    public static final DeferredItem<CraftingUpgradeItem> CRAFTING_UPGRADE = ITEMS.registerWithId(
             "crafting_upgrade",
-            () -> new CraftingUpgradeItem(2, 3, new Item.Properties().stacksTo(1)));
-    public static final DeferredItem<CraftingUpgradeItem> ADVANCED_CRAFTING_UPGRADE = ITEMS.register(
+            id -> new CraftingUpgradeItem(2, 3, new Item.Properties().setId(id).stacksTo(1)));
+
+    public static final DeferredItem<CraftingUpgradeItem> ADVANCED_CRAFTING_UPGRADE = ITEMS.registerWithId(
             "advanced_crafting_upgrade",
-            () -> new CraftingUpgradeItem(3, 3, new Item.Properties().stacksTo(1)));
+            id -> new CraftingUpgradeItem(3, 3, new Item.Properties().setId(id).stacksTo(1)));
 
     private static DeferredItem<UpgradeItem> upgrade(UpgradeItem.Kind kind) {
-        return ITEMS.register("upgrade_" + kind.id(), () -> new UpgradeItem(kind, new Item.Properties().stacksTo(1)));
+        return ITEMS.registerWithId("upgrade_" + kind.id(),
+                id -> new UpgradeItem(kind, new Item.Properties().setId(id).stacksTo(1)));
     }
 
     public static List<Item> all() {

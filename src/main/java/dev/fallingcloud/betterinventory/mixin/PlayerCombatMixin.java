@@ -24,6 +24,13 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  * held item is not itself a weapon: base damage via a temporary attribute swap,
  * enchantments/durability/sweep via getWeaponItem + the sweep-check call, and
  * weapon-break cleanup routed to the rack instead of the real hands.
+ *
+ * <p>26.3 adaptation: {@code Player#attack(Entity)} has been hollowed out into a
+ * pipeline (createAttackSource -> isSweepAttack -> doSweepAttack ->
+ * itemAttackInteraction -> damageStatsAndHearts) and no longer touches the hand
+ * slots directly. The two hand reads/writes we need moved into
+ * {@code isSweepAttack} and {@code itemAttackInteraction}, so the WrapOperations
+ * below now target those methods instead of {@code attack}.
  */
 @Mixin(Player.class)
 public abstract class PlayerCombatMixin extends LivingEntity {
@@ -62,8 +69,12 @@ public abstract class PlayerCombatMixin extends LivingEntity {
         }
     }
 
+    /**
+     * 26.3: the sweep check lives in {@code Player#isSweepAttack(ZZZ)}, which still
+     * reads the main hand via {@code getItemInHand}. Feed it the rack weapon.
+     */
     @WrapOperation(
-            method = "attack",
+            method = "isSweepAttack",
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/world/entity/player/Player;getItemInHand(Lnet/minecraft/world/InteractionHand;)Lnet/minecraft/world/item/ItemStack;"))
@@ -74,8 +85,13 @@ public abstract class PlayerCombatMixin extends LivingEntity {
         return original.call(player, hand);
     }
 
+    /**
+     * 26.3: the "clear the broken weapon out of the hand" write now happens inside
+     * {@code Player#itemAttackInteraction(Entity, ItemStack, DamageSource, boolean)}.
+     * Route it to the rack instead of the real hands.
+     */
     @WrapOperation(
-            method = "attack",
+            method = "itemAttackInteraction",
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/world/entity/player/Player;setItemInHand(Lnet/minecraft/world/InteractionHand;Lnet/minecraft/world/item/ItemStack;)V"))
