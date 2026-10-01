@@ -1,10 +1,9 @@
 {
-  "key_category.betterinventory.inventory": "Better Inventory",
+  "key.category.betterinventory.inventory": "Better Inventory",
   "itemGroup.betterinventory": "Better Inventory",
   "container.betterinventory.inventory": "Inventory",
   "container.betterinventory.settings": "Inventory Settings",
   "block.betterinventory.backpack": "Backpack",
-  "key.categories.betterinventory": "Better Inventory",
   "key.betterinventory.offhand_selector": "Offhand Carousel (hold + scroll)",
   "item.betterinventory.backpack.level": "Level %s - %s upgrade slots",
   "item.betterinventory.backpack.contents": "%s items stored",

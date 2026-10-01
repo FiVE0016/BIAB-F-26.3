@@ -1,10 +1,9 @@
 {
-  "key_category.betterinventory.inventory": "更好的背包与物品栏",
+  "key.category.betterinventory.inventory": "更好的背包与物品栏",
   "itemGroup.betterinventory": "更好的背包与物品栏",
   "container.betterinventory.inventory": "物品栏",
   "container.betterinventory.settings": "物品栏设置",
   "block.betterinventory.backpack": "背包",
-  "key.categories.betterinventory": "更好的背包与物品栏",
   "key.betterinventory.offhand_selector": "副手轮换（按住 + 滚轮）",
   "item.betterinventory.backpack.level": "等级 %s - %s 个升级槽",
   "item.betterinventory.backpack.contents": "已存放 %s 个物品",
