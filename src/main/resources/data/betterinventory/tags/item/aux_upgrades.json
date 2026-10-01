@@ -1,0 +1,7 @@
+{
+  "replace": false,
+  "values": [
+    "betterinventory:crafting_upgrade",
+    "betterinventory:advanced_crafting_upgrade"
+  ]
+}

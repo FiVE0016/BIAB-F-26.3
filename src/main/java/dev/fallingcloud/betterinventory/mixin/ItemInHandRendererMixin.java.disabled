@@ -1,0 +1,37 @@
+package dev.fallingcloud.betterinventory.mixin;
+
+import dev.fallingcloud.betterinventory.BetterInventoryConfig;
+import dev.fallingcloud.betterinventory.client.ClientHudState;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.renderer.ItemInHandRenderer;
+import net.minecraft.world.item.ItemStack;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Redirect;
+
+/**
+ * Shows the auto-selected rack tool in the first-person hand while it is in use.
+ *
+ * <p>Redirects the single {@code LocalPlayer.getMainHandItem()} in
+ * {@code ItemInHandRenderer#tick}, which is where the renderer caches the stack it
+ * later draws. Going through the cache (rather than the draw call) means vanilla's
+ * re-equip animation plays naturally as the tool swaps in and back out, and the
+ * linger cooldown keeps it from flickering between blocks.
+ */
+@Mixin(ItemInHandRenderer.class)
+public class ItemInHandRendererMixin {
+    @Redirect(
+            method = "tick",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/player/LocalPlayer;getMainHandItem()Lnet/minecraft/world/item/ItemStack;"))
+    private ItemStack betterinventory$showRackToolInHand(LocalPlayer player) {
+        if (BetterInventoryConfig.SHOW_TOOL_IN_HAND.get()) {
+            ItemStack tool = ClientHudState.activeTool;
+            if (tool != null && !tool.isEmpty()) {
+                return tool;
+            }
+        }
+        return player.getMainHandItem();
+    }
+}

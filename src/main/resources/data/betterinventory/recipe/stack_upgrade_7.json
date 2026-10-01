@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "MMM",
+    "MUM",
+    "MMM"
+  ],
+  "key": {
+    "M": {
+      "item": "minecraft:netherite_ingot"
+    },
+    "U": {
+      "item": "betterinventory:stack_upgrade_6"
+    }
+  },
+  "result": {
+    "id": "betterinventory:stack_upgrade_7",
+    "count": 1
+  }
+}

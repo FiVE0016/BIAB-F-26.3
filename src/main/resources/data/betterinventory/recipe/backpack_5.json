@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "MMM",
+    "MBM",
+    "MMM"
+  ],
+  "key": {
+    "M": {
+      "item": "minecraft:netherite_ingot"
+    },
+    "B": {
+      "item": "betterinventory:backpack_4"
+    }
+  },
+  "result": {
+    "id": "betterinventory:backpack_5",
+    "count": 1
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " A ",
+    "AHA",
+    " R "
+  ],
+  "key": {
+    "A": {
+      "item": "minecraft:arrow"
+    },
+    "H": {
+      "item": "minecraft:hopper"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    }
+  },
+  "result": {
+    "id": "betterinventory:upgrade_refill",
+    "count": 1
+  }
+}

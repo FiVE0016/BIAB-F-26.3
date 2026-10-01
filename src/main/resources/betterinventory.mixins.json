@@ -1,0 +1,20 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "dev.fallingcloud.betterinventory.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "mixins": [
+    "ContainerCursorMixin",
+    "InventoryStackSizeMixin",
+    "ItemStackCountCodecMixin",
+    "PlayerCombatMixin",
+    "ServerPlayerGameModeMixin",
+    "SlotStackSizeMixin"
+  ],
+  "client": [
+    "GuiGraphicsCountMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

@@ -1,0 +1,63 @@
+plugins {
+	id 'net.fabricmc.fabric-loom' version "${loom_version}"
+	id 'maven-publish'
+}
+
+version = project.version
+group = project.maven_group
+
+// Captured outside the task: referencing `project` inside an execution-time closure
+// breaks Gradle's configuration cache.
+def modVersion = project.version
+
+loom {
+	mods {
+		"betterinventory" {
+			sourceSet sourceSets.main
+		}
+	}
+}
+
+repositories {
+	// Loom adds the Minecraft and Fabric repositories automatically.
+}
+
+dependencies {
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+}
+
+processResources {
+	inputs.property "version", modVersion
+	filesMatching("fabric.mod.json") {
+		expand "version": modVersion
+	}
+}
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.encoding = "UTF-8"
+	it.options.release = 25
+}
+
+java {
+	withSourcesJar()
+	sourceCompatibility = JavaVersion.VERSION_25
+	targetCompatibility = JavaVersion.VERSION_25
+}
+
+// Note: Gradle 9 removed Project.archivesBaseName, so the name is a literal here.
+jar {
+	from("LICENSE") {
+		rename { "${it}_betterinventory" }
+	}
+}
+
+publishing {
+	publications {
+		create("mavenJava", MavenPublication) {
+			from components.java
+		}
+	}
+	repositories {}
+}

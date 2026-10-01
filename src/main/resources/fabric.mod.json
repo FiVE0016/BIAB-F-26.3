@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "id": "betterinventory",
+  "version": "${version}",
+  "name": "Better Inventory And Backpacks",
+  "description": "A full inventory overhaul: tabbed backpack inventories, a gather hub, an auto-used tool rack, a quad offhand carousel, slot locking, stack upgrades and more.",
+  "authors": ["falling_colud"],
+  "license": "MIT",
+  "icon": "assets/betterinventory/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": ["dev.fallingcloud.betterinventory.BetterInventory"],
+    "client": ["dev.fallingcloud.betterinventory.client.BetterInventoryClient"]
+  },
+  "mixins": ["betterinventory.mixins.json"],
+  "depends": {
+    "fabricloader": ">=0.19.5",
+    "minecraft": "~26.3",
+    "java": ">=25",
+    "fabric-api": "*"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " S ",
+    "SHS",
+    " C "
+  ],
+  "key": {
+    "S": {
+      "item": "minecraft:string"
+    },
+    "H": {
+      "item": "minecraft:hopper"
+    },
+    "C": {
+      "item": "minecraft:chest"
+    }
+  },
+  "result": {
+    "id": "betterinventory:upgrade_pickup",
+    "count": 1
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "parent": "block/block",
+  "textures": {
+    "particle": "betterinventory:block/backpack_side",
+    "side": "betterinventory:block/backpack_side",
+    "top": "betterinventory:block/backpack_top"
+  },
+  "elements": [
+    {
+      "from": [
+        3,
+        0,
+        4.5
+      ],
+      "to": [
+        13,
+        10,
+        11.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#side"
+        },
+        "south": {
+          "texture": "#side"
+        },
+        "east": {
+          "texture": "#side"
+        },
+        "west": {
+          "texture": "#side"
+        },
+        "up": {
+          "texture": "#top"
+        },
+        "down": {
+          "texture": "#top"
+        }
+      }
+    }
+  ]
+}

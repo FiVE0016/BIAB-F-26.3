@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "MMM",
+    "MUM",
+    "MMM"
+  ],
+  "key": {
+    "M": {
+      "item": "minecraft:iron_ingot"
+    },
+    "U": {
+      "item": "betterinventory:stack_upgrade_2"
+    }
+  },
+  "result": {
+    "id": "betterinventory:stack_upgrade_3",
+    "count": 1
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "MMM",
+    "MUM",
+    "MMM"
+  ],
+  "key": {
+    "M": {
+      "item": "minecraft:emerald"
+    },
+    "U": {
+      "item": "betterinventory:stack_upgrade_4"
+    }
+  },
+  "result": {
+    "id": "betterinventory:stack_upgrade_5",
+    "count": 1
+  }
+}
