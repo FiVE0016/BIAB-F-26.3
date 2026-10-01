@@ -7,8 +7,12 @@
     "OOO"
   ],
   "key": {
-    "O": "minecraft:obsidian",
-    "L": "minecraft:lava_bucket"
+    "O": {
+      "item": "minecraft:obsidian"
+    },
+    "L": {
+      "item": "minecraft:lava_bucket"
+    }
   },
   "result": {
     "id": "betterinventory:upgrade_void",

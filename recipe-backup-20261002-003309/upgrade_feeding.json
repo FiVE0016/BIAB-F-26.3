@@ -7,9 +7,15 @@
     " B "
   ],
   "key": {
-    "G": "minecraft:gold_ingot",
-    "A": "minecraft:golden_carrot",
-    "B": "minecraft:bowl"
+    "G": {
+      "item": "minecraft:gold_ingot"
+    },
+    "A": {
+      "item": "minecraft:golden_carrot"
+    },
+    "B": {
+      "item": "minecraft:bowl"
+    }
   },
   "result": {
     "id": "betterinventory:upgrade_feeding",

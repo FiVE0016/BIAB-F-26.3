@@ -19,7 +19,7 @@ public final class ModAttachments {
             AttachmentRegistry.createDefaulted(BetterInventory.id("loadout"), PlayerLoadout::new);
 
     public static PlayerLoadout get(Player player) {
-        return player.getAttached(LOADOUT);
+        return player.getAttachedOrCreate(LOADOUT);
     }
 
     private ModAttachments() {}

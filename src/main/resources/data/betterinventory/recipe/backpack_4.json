@@ -7,12 +7,8 @@
     "MMM"
   ],
   "key": {
-    "M": {
-      "item": "minecraft:diamond"
-    },
-    "B": {
-      "item": "betterinventory:backpack_3"
-    }
+    "M": "minecraft:diamond",
+    "B": "betterinventory:backpack_3"
   },
   "result": {
     "id": "betterinventory:backpack_4",

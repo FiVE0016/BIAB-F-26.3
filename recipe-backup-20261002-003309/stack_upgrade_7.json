@@ -7,8 +7,12 @@
     "MMM"
   ],
   "key": {
-    "M": "minecraft:netherite_ingot",
-    "U": "betterinventory:stack_upgrade_6"
+    "M": {
+      "item": "minecraft:netherite_ingot"
+    },
+    "U": {
+      "item": "betterinventory:stack_upgrade_6"
+    }
   },
   "result": {
     "id": "betterinventory:stack_upgrade_7",

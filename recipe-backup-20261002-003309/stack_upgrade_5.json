@@ -7,11 +7,15 @@
     "MMM"
   ],
   "key": {
-    "M": "minecraft:iron_ingot",
-    "U": "betterinventory:stack_upgrade_2"
+    "M": {
+      "item": "minecraft:emerald"
+    },
+    "U": {
+      "item": "betterinventory:stack_upgrade_4"
+    }
   },
   "result": {
-    "id": "betterinventory:stack_upgrade_3",
+    "id": "betterinventory:stack_upgrade_5",
     "count": 1
   }
 }

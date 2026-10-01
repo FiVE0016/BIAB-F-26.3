@@ -7,12 +7,8 @@
     "MMM"
   ],
   "key": {
-    "M": {
-      "item": "minecraft:netherite_ingot"
-    },
-    "B": {
-      "item": "betterinventory:backpack_4"
-    }
+    "M": "minecraft:netherite_ingot",
+    "B": "betterinventory:backpack_4"
   },
   "result": {
     "id": "betterinventory:backpack_5",
