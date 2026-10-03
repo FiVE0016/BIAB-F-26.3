@@ -50,7 +50,7 @@ public final class LoadoutStorage {
 
         // Copy the loadout onto the fresh player instance (respawn / dimension change).
         ServerPlayerEvents.COPY_FROM.register((oldPlayer, newPlayer, alive) -> {
-            CompoundTag tag = oldPlayer.getAttached(ModAttachments.LOADOUT)
+            CompoundTag tag = ModAttachments.get(oldPlayer)
                     .serializeNBT(oldPlayer.registryAccess());
             ModAttachments.get(newPlayer).deserializeNBT(newPlayer.registryAccess(), tag);
         });

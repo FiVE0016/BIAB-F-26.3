@@ -12,7 +12,8 @@
     "SlotStackSizeMixin"
   ],
   "client": [
-    "GuiGraphicsCountMixin"
+    "GuiGraphicsCountMixin",
+    "GuiSetScreenMixin"
   ],
   "injectors": {
     "defaultRequire": 1

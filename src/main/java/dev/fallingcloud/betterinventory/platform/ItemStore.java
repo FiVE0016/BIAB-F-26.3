@@ -52,7 +52,7 @@ public class ItemStore implements IItemHandlerModifiable, INBTSerializable<Compo
 
     /** Override to restrict what a slot accepts (tool rack, upgrade slots, ...). */
     public boolean isValid(int slot, ItemStack stack) {
-        return true;
+        return isItemValid(slot, stack);
     }
 
     /** Hook for subclasses, matching NeoForge's {@code ItemStackHandler#onContentsChanged}. */
@@ -131,7 +131,7 @@ public class ItemStore implements IItemHandlerModifiable, INBTSerializable<Compo
 
     @Override
     public boolean isItemValid(int slot, ItemStack stack) {
-        return isValid(slot, stack);
+        return true;
     }
 
     @Override
