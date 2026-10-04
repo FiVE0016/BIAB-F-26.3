@@ -1,6 +1,8 @@
 package dev.fallingcloud.betterinventory.client;
 
 import net.minecraft.client.Minecraft;
+import dev.fallingcloud.betterinventory.net.BetterInventoryPayloads;
+import dev.fallingcloud.betterinventory.shim.PacketDistributor;
 
 /**
  * Client-side tick and render hooks.
@@ -14,8 +16,23 @@ public final class ClientEvents {
 
     public static void onClientTick(Minecraft client) {
         if (client.player == null) {
+            ClientHudState.selectorOpen = false;
+            ClientHudState.progress = 0;
+            ClientHudState.progressO = 0;
             return;
         }
+        boolean down = BetterInventoryClient.OFFHAND_SELECTOR.isDown() && client.gui.screen() == null;
+        var loadout = ClientHudState.loadout(client);
+        if (down && !ClientHudState.selectorOpen) {
+            ClientHudState.pendingIndex = loadout.activeOffhand;
+        }
+        if (!down && ClientHudState.selectorOpen) {
+            if (ClientHudState.pendingIndex != loadout.activeOffhand) {
+                PacketDistributor.sendToServer(new BetterInventoryPayloads.SelectOffhand(ClientHudState.pendingIndex));
+                loadout.activeOffhand = ClientHudState.pendingIndex;
+            }
+        }
+        ClientHudState.selectorOpen = down;
         ClientHudState.tick(client);
     }
 
