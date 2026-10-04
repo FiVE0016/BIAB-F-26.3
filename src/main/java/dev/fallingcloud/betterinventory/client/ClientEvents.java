@@ -7,9 +7,12 @@ import dev.fallingcloud.betterinventory.shim.PacketDistributor;
 /**
  * Client-side tick and render hooks.
  *
- * <p>Fabric has no MouseScrollingEvent and no cancellable ScreenEvent.Opening, so
- * those two behaviours from the original ClientEvents still need a mixin - see
- * STATUS.md. Scroll and screen-open handling are stubbed here so the rest compiles.
+ * <p>Alt + scroll cycling of the offhand carousel is handled by
+ * {@code mixin.MouseScrollMixin}, which injects into MouseHandler.onScroll.
+ * This class only tracks the Alt key and commits the pending selection on
+ * release. Screen-open handling is still stubbed: Fabric has no cancellable
+ * ScreenEvent.Opening, so that behaviour still needs its own mixin - see
+ * STATUS.md.
  */
 public final class ClientEvents {
     private ClientEvents() {}
