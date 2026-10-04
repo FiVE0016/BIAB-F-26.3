@@ -10,9 +10,12 @@ import dev.fallingcloud.betterinventory.shim.PacketDistributor;
  * <p>Alt + scroll cycling of the offhand carousel is handled by
  * {@code mixin.MouseScrollMixin}, which injects into MouseHandler.onScroll.
  * This class only tracks the Alt key and commits the pending selection on
- * release. Screen-open handling is still stubbed: Fabric has no cancellable
- * ScreenEvent.Opening, so that behaviour still needs its own mixin - see
- * STATUS.md.
+ * release.
+ *
+ * <p>Replacing the vanilla survival inventory screen is handled by
+ * {@code mixin.GuiSetScreenMixin} (registered under {@code client} in
+ * betterinventory.mixins.json), not by this class - there is no
+ * onScreenOpening hook here, and none is needed.
  */
 public final class ClientEvents {
     private ClientEvents() {}

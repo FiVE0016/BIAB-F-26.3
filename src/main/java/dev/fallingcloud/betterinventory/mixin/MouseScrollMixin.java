@@ -44,7 +44,7 @@ public class MouseScrollMixin {
             return;
         }
         ClientHudState.pendingIndex =
-                Math.floorMod(ClientHudState.pendingIndex - (int) Math.signum(deltaY), slots);
+                Math.floorMod(ClientHudState.pendingIndex + (int) Math.signum(deltaY), slots);
         ci.cancel();
     }
 }
