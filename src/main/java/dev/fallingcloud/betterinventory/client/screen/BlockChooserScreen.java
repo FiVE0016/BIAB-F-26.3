@@ -181,7 +181,7 @@ public class BlockChooserScreen extends Screen {
     private boolean onMouseClick(net.minecraft.client.input.MouseButtonEvent event, boolean doubleClick) {
         double mouseX = event.x(), mouseY = event.y();
         int button = event.button();
-        if (button == 0) {
+        if (button == 1) {
             int top = listTop();
             int max = Math.min(filtered.size(), scroll + VISIBLE_ROWS);
             for (int i = scroll; i < max; i++) {

@@ -33,6 +33,7 @@ public final class BetterInventoryClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
+        ItemTooltips.register();
         BetterInventoryConfig.readClient();
 
         MenuScreens.register(ModMenus.LOADOUT, BetterInventoryScreen::new);
@@ -48,4 +49,15 @@ public final class BetterInventoryClient implements ClientModInitializer {
                 BetterInventory.id("offhand_selector"),
                 (graphics, delta) -> BetterInventoryHud.renderOffhandSelector(graphics, delta));
     }
+
+    /** Unbound by default; the player picks a key in Options > Controls. */
+    public static final KeyMapping TOGGLE_INVENTORY_MODE = new KeyMapping(
+            "key.betterinventory.toggle_inventory_mode",
+            InputConstants.UNKNOWN.getValue(),
+            OFFHAND_SELECTOR.getCategory());
+
+    static {
+        KeyMappingHelper.registerKeyMapping(TOGGLE_INVENTORY_MODE);
+    }
 }
+

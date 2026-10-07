@@ -13,8 +13,10 @@
                ],
     "client":  [
                    "GuiGraphicsCountMixin",
+                   "CreativeStackSizeMixin",
                    "GuiSetScreenMixin",
-                   "MouseScrollMixin"
+                   "MouseScrollMixin",
+                    "KeyboardKeyPressMixin"
                ],
     "injectors":  {
                       "defaultRequire":  1

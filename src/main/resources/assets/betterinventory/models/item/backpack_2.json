@@ -1,6 +1,3 @@
 {
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "betterinventory:item/backpack_2"
-  }
+  "parent": "betterinventory:block/tier_2"
 }

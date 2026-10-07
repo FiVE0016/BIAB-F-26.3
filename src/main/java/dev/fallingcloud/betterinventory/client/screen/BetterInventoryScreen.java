@@ -318,7 +318,7 @@ public class BetterInventoryScreen extends AbstractContainerScreen<BetterInvento
     private boolean onMouseClick(net.minecraft.client.input.MouseButtonEvent event, boolean doubleClick) {
         double mouseX = event.x(), mouseY = event.y();
         int button = event.button();
-        if (button == 0) {
+        if (button == 1) {
             for (int tab = 0; tab < PlayerLoadout.TAB_COUNT; tab++) {
                 if (isHovering(BetterInventoryLayout.TAB_X0 + tab * BetterInventoryLayout.TAB_SPACING, 0,
                         BetterInventoryLayout.TAB_W, BetterInventoryLayout.TAB_H, mouseX, mouseY)) {
@@ -345,7 +345,7 @@ public class BetterInventoryScreen extends AbstractContainerScreen<BetterInvento
                 return true;
             }
         }
-        if (button == 2 && handleLockClick()) {
+        if (button == 3 && handleLockClick()) {
             return true;
         }
         return super.mouseClicked(event, doubleClick);

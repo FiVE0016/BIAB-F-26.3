@@ -1,5 +1,7 @@
 package dev.fallingcloud.betterinventory.mixin;
 
+import dev.fallingcloud.betterinventory.BetterInventoryConfig;
+import dev.fallingcloud.betterinventory.BetterInventoryConfig.ScreenMode;
 import dev.fallingcloud.betterinventory.net.BetterInventoryPayloads;
 import dev.fallingcloud.betterinventory.shim.PacketDistributor;
 import net.minecraft.client.Minecraft;
@@ -22,7 +24,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * <p>In 26.3 the creative inventory is not opened directly by the E key: vanilla
  * opens an InventoryScreen and that screen swaps itself over inside init() once
  * it sees the player has infinite materials. Cancelling that first setScreen
- * kills the swap, so creative mode is handed back to vanilla untouched.
+ * kills the swap, so under AUTO creative mode is handed back to vanilla untouched.
  *
  * <p>priority is 1100 instead of the default 1000 so this handler runs after
  * other mods; if one of them already cancelled setScreen this never runs.
@@ -35,10 +37,17 @@ public class GuiSetScreenMixin {
         if (!(screen instanceof InventoryScreen)) {
             return;
         }
+        LocalPlayer player = Minecraft.getInstance().player;
+        if (player == null) {
+            return;
+        }
+        ScreenMode mode = BetterInventoryConfig.SCREEN_MODE.get();
+        if (mode == ScreenMode.VANILLA) {
+            return;
+        }
         // hasInfiniteMaterials() is the exact predicate vanilla init() uses for
         // the creative swap, so letting it through keeps the two in step.
-        LocalPlayer player = Minecraft.getInstance().player;
-        if (player != null && player.hasInfiniteMaterials()) {
+        if (mode == ScreenMode.AUTO && player.hasInfiniteMaterials()) {
             return;
         }
         ci.cancel();

@@ -1,18 +1,78 @@
 {
   "variants": {
-    "facing=north": {
-      "model": "betterinventory:block/backpack"
+    "facing=north,tier=1": {
+      "model": "betterinventory:block/tier_1"
     },
-    "facing=south": {
-      "model": "betterinventory:block/backpack",
+    "facing=south,tier=1": {
+      "model": "betterinventory:block/tier_1",
       "y": 180
     },
-    "facing=west": {
-      "model": "betterinventory:block/backpack",
+    "facing=west,tier=1": {
+      "model": "betterinventory:block/tier_1",
       "y": 270
     },
-    "facing=east": {
-      "model": "betterinventory:block/backpack",
+    "facing=east,tier=1": {
+      "model": "betterinventory:block/tier_1",
+      "y": 90
+    },
+    "facing=north,tier=2": {
+      "model": "betterinventory:block/tier_2"
+    },
+    "facing=south,tier=2": {
+      "model": "betterinventory:block/tier_2",
+      "y": 180
+    },
+    "facing=west,tier=2": {
+      "model": "betterinventory:block/tier_2",
+      "y": 270
+    },
+    "facing=east,tier=2": {
+      "model": "betterinventory:block/tier_2",
+      "y": 90
+    },
+    "facing=north,tier=3": {
+      "model": "betterinventory:block/tier_3"
+    },
+    "facing=south,tier=3": {
+      "model": "betterinventory:block/tier_3",
+      "y": 180
+    },
+    "facing=west,tier=3": {
+      "model": "betterinventory:block/tier_3",
+      "y": 270
+    },
+    "facing=east,tier=3": {
+      "model": "betterinventory:block/tier_3",
+      "y": 90
+    },
+    "facing=north,tier=4": {
+      "model": "betterinventory:block/tier_4"
+    },
+    "facing=south,tier=4": {
+      "model": "betterinventory:block/tier_4",
+      "y": 180
+    },
+    "facing=west,tier=4": {
+      "model": "betterinventory:block/tier_4",
+      "y": 270
+    },
+    "facing=east,tier=4": {
+      "model": "betterinventory:block/tier_4",
+      "y": 90
+    },
+    "facing=north,tier=5": {
+      "model": "betterinventory:block/tier_5"
+    },
+    "facing=south,tier=5": {
+      "model": "betterinventory:block/tier_5",
+      "y": 180
+    },
+    "facing=west,tier=5": {
+      "model": "betterinventory:block/tier_5",
+      "y": 270
+    },
+    "facing=east,tier=5": {
+      "model": "betterinventory:block/tier_5",
       "y": 90
     }
   }

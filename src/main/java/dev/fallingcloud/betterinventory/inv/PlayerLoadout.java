@@ -29,7 +29,19 @@ public class PlayerLoadout implements INBTSerializable<CompoundTag> {
     public static final int TOOL_AXE = 4;
     public static final int TOOL_SWORD = 5;
 
-    public static final int TAB_COUNT = 5; // 0 = default, 1..4 = backpacks
+    public static final int TAB_COUNT = 5; // 0 = default, 1..4 = backpack pages
+    
+    /** Slots shown per backpack page. */
+    public static final int PAGE_SIZE = 72;
+    /** Pages a level-5 backpack unlocks. */
+    public static final int PAGE_COUNT = 4;
+    /** Total slots the contents component holds: 4 x 72. */
+    public static final int CONTENTS_SIZE = 288;
+    
+    /** First slot of page "tab" inside the contents component. */
+    public static int pageBase(int tab) {
+        return (tab - 1) * PAGE_SIZE;
+    }
 
     /** Set when anything HUD-relevant changed and a client sync should be sent. */
     public boolean dirty = true;
@@ -55,7 +67,7 @@ public class PlayerLoadout implements INBTSerializable<CompoundTag> {
 
     public final BigStackHandler gather;
 
-    public final ItemStackHandler backpacks = new ItemStackHandler(4) {
+    public final ItemStackHandler backpacks = new ItemStackHandler(1) {
         @Override
         public boolean isItemValid(int slot, ItemStack stack) {
             return stack.getItem() instanceof BackpackItem;
@@ -94,7 +106,9 @@ public class PlayerLoadout implements INBTSerializable<CompoundTag> {
         }
     };
 
-    public int activeTab = 0;
+    public final FurnaceState furnace = new FurnaceState(() -> this.dirty = true);
+public boolean furnaceOpen = false;
+public int activeTab = 0;
     public int activeOffhand = 0;
     /** Crafting tab: shows the vertical crafting grid in place of the character view. */
     public boolean craftingOpen = false;
@@ -104,7 +118,7 @@ public class PlayerLoadout implements INBTSerializable<CompoundTag> {
     public final EnumSet<SettingKey> sharedKeys = EnumSet.noneOf(SettingKey.class);
 
     public PlayerLoadout() {
-        this.gather = new BigStackHandler(18, BigStackHandler.fromUpgrade(personal)) {
+        this.gather = new BigStackHandler(45, BigStackHandler.fromUpgrade(personal)) {
             @Override
             protected void onContentsChanged(int slot) {
                 dirty = true;
@@ -136,11 +150,26 @@ public class PlayerLoadout implements INBTSerializable<CompoundTag> {
         if (tab < 1 || tab > 4) {
             return ItemStack.EMPTY;
         }
-        return backpacks.getStackInSlot(tab - 1);
+        return backpack();
+    }
+    
+    /** The single equipped backpack. */
+    public ItemStack backpack() {
+        return backpacks.getStackInSlot(0);
+    }
+    
+    /** Level of the equipped backpack, 0 when none. */
+    public int tier() {
+        return backpack().getItem() instanceof BackpackItem b ? b.level() : 0;
+    }
+    
+    /** Pages unlocked by the equipped backpack: level 1 -> 0, level 5 -> 4. */
+    public int pages() {
+        return Math.max(0, tier() - 1);
     }
 
     public boolean tabAvailable(int tab) {
-        return tab == 0 || !backpack(tab).isEmpty();
+        return tab == 0 || tab >= 1 && tab <= pages();
     }
 
     /** The crafting upgrade in the personal aux slot, if any. */
@@ -183,7 +212,9 @@ public class PlayerLoadout implements INBTSerializable<CompoundTag> {
         tag.put("backpacks", backpacks.serializeNBT(provider));
         tag.put("personal", personal.serializeNBT(provider));
         tag.put("main_stash", mainStash.serializeNBT(provider));
-        tag.putInt("active_tab", activeTab);
+        tag.put("furnace", furnace.save(provider));
+tag.putBoolean("furnace_open", furnaceOpen);
+tag.putInt("active_tab", activeTab);
         tag.putBoolean("crafting_open", craftingOpen);
         tag.putInt("active_offhand", activeOffhand);
         TabSettings.CODEC.encodeStart(NbtOps.INSTANCE, defaultTab).result().ifPresent(t -> tag.put("default_tab", t));
@@ -204,7 +235,9 @@ public class PlayerLoadout implements INBTSerializable<CompoundTag> {
         backpacks.deserializeNBT(provider, tag.getCompoundOrEmpty("backpacks"));
         personal.deserializeNBT(provider, tag.getCompoundOrEmpty("personal"));
         mainStash.deserializeNBT(provider, tag.getCompoundOrEmpty("main_stash"));
-        activeTab = Math.floorMod(tag.getIntOr("active_tab", 0), TAB_COUNT);
+        furnace.load(provider, tag.getCompoundOrEmpty("furnace"));
+furnaceOpen = tag.getBooleanOr("furnace_open", false);
+activeTab = Math.floorMod(tag.getIntOr("active_tab", 0), TAB_COUNT);
         craftingOpen = tag.getBooleanOr("crafting_open", false);
         activeOffhand = Math.floorMod(tag.getIntOr("active_offhand", 0), 4);
         if (!tag.getCompoundOrEmpty("default_tab").isEmpty()) {
@@ -223,8 +256,8 @@ public class PlayerLoadout implements INBTSerializable<CompoundTag> {
         // Keep handler sizes sane even if older data had different sizes.
         ensureSize(tools, 6);
         ensureSize(offhandStore, 4);
-        ensureSize(gather, 18);
-        ensureSize(backpacks, 4);
+        ensureSize(gather, 45);
+        ensureSize(backpacks, 1);
         ensureSize(personal, 2);
         ensureSize(mainStash, 27);
     }
@@ -252,3 +285,8 @@ public class PlayerLoadout implements INBTSerializable<CompoundTag> {
                 .anyMatch(s -> s.getItem() instanceof UpgradeItem u && u.kind() == kind);
     }
 }
+
+
+
+
+

@@ -119,6 +119,24 @@ public final class BetterInventoryConfig {
         return values[Math.max(0, Math.min(values.length - 1, tier))];
     }
 
+    /** Which inventory screen the E key opens. */
+    public enum ScreenMode {
+        /** Creative stays vanilla, survival uses the mod screen. */
+        AUTO,
+        /** Always the mod screen. */
+        MOD,
+        /** Always the vanilla screen. */
+        VANILLA
+    }
+
+    /**
+     * Client-side: only {@code GuiSetScreenMixin} reads it, and that mixin is
+     * registered under the client mixin set. AUTO is the shipped default; the
+     * toggle key swaps MOD and VANILLA only, so AUTO can be restored just by
+     * editing betterinventory-client.json.
+     */
+    public static final EnumValue<ScreenMode> SCREEN_MODE = new EnumValue<>(ScreenMode.AUTO);
+
     // ------------------------------------------------------------------ io
 
     public static void load() {
@@ -147,6 +165,15 @@ public final class BetterInventoryConfig {
         ZOOM_SCALE.read(root, "zoomScale", Double.class);
         SHOW_TOOL_IN_HAND.read(root, "showToolInHand", Boolean.class);
         TOOL_LINGER_TICKS.read(root, "toolLingerTicks", Integer.class);
+        SCREEN_MODE.read(root, "screenMode", ScreenMode.class);
+        writeJson(file, root);
+    }
+
+    /** Persists the screen mode so the toggle survives a restart. */
+    public static void writeClient() {
+        Path file = dir().resolve("betterinventory-client.json");
+        JsonObject root = readJson(file);
+        root.addProperty("screenMode", SCREEN_MODE.get().name());
         writeJson(file, root);
     }
 
@@ -175,3 +202,4 @@ public final class BetterInventoryConfig {
 
     private BetterInventoryConfig() {}
 }
+

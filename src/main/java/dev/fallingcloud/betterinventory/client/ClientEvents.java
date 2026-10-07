@@ -21,6 +21,9 @@ public final class ClientEvents {
     private ClientEvents() {}
 
     public static void onClientTick(Minecraft client) {
+        if (BetterInventoryClient.TOGGLE_INVENTORY_MODE.consumeClick()) {
+            InventoryModeToggle.toggle(client);
+        }
         if (client.player == null) {
             ClientHudState.selectorOpen = false;
             ClientHudState.progress = 0;

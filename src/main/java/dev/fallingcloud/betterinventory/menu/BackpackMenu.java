@@ -26,17 +26,17 @@ import net.minecraft.world.phys.Vec3;
 /** The standalone backpack GUI (right click in hand or on a placed backpack). */
 public class BackpackMenu extends AbstractContainerMenu {
     public static final int STORAGE_SIZE = TabStorage.SIZE;
-    public static final int SLOT_STORAGE = 0;   // 45: 0-26 main, 27-44 gather
-    public static final int SLOT_PLAYER = 45;   // 27 player inv
-    public static final int SLOT_HOTBAR = 72;   // 9 hotbar
-    public static final int SLOT_END = 81;
+    public static final int SLOT_STORAGE = 0;   // 72: 0-26 main, 27-71 gather
+    public static final int SLOT_PLAYER = 72;   // 27 player inv
+    public static final int SLOT_HOTBAR = 99;   // 9 hotbar
+    public static final int SLOT_END = 108;
 
     public static final int IMAGE_W = 176;
-    public static final int IMAGE_H = 212;
+    public static final int IMAGE_H = 266;
     public static final int GATHER_Y = 18;
-    public static final int MAIN_Y = 58;
-    public static final int PLAYER_Y = 126;
-    public static final int HOTBAR_Y = 188;
+    public static final int MAIN_Y = 112;
+    public static final int PLAYER_Y = 180;
+    public static final int HOTBAR_Y = 242;
 
     public interface Access {
         ItemStack stack();
@@ -83,6 +83,7 @@ public class BackpackMenu extends AbstractContainerMenu {
     public final Access access;
     public final ComponentBackedHandler storageHandler;
     private final int guardedHotbarSlot;
+    private int page = 1;
 
     public BackpackMenu(int id, Inventory inventory, Access access) {
         super(dev.fallingcloud.betterinventory.registry.ModMenus.BACKPACK, id);
@@ -92,13 +93,14 @@ public class BackpackMenu extends AbstractContainerMenu {
         ItemStack host = access.stack().getItem() instanceof BackpackItem
                 ? access.stack()
                 : new ItemStack(dev.fallingcloud.betterinventory.registry.ModItems.BACKPACKS[0].get());
-        this.storageHandler = new ComponentBackedHandler(host, ModComponents.BACKPACK_CONTENTS.get(), STORAGE_SIZE, loadout::storageCap);
+        this.storageHandler = new ComponentBackedHandler(host, ModComponents.BACKPACK_CONTENTS.get(), PlayerLoadout.CONTENTS_SIZE, loadout::storageCap);
         this.storageHandler.setChangeListener(access::markChanged);
         this.guardedHotbarSlot = access instanceof HandAccess handAccess && handAccess.hand() == InteractionHand.MAIN_HAND
                 ? inventory.getSelectedSlot()
                 : -1;
 
-        // 0-44 storage: gather hub rows on top, main grid below.
+        // 0-71 storage: one 72-slot page of the 288-slot contents.
+        PageView view = new PageView();
         for (int i = 0; i < STORAGE_SIZE; i++) {
             int x;
             int y;
@@ -110,7 +112,7 @@ public class BackpackMenu extends AbstractContainerMenu {
                 x = 8 + (j % 9) * 18;
                 y = GATHER_Y + (j / 9) * 18;
             }
-            addSlot(new LockedHandlerSlot(storageHandler, i, x, y,
+            addSlot(new LockedHandlerSlot(view, i, x, y,
                     () -> BackpackItem.settings(storageHandler.host()),
                     loadout::storageCap,
                     storageHandler::host));
@@ -137,7 +139,81 @@ public class BackpackMenu extends AbstractContainerMenu {
             });
         }
     }
-
+    
+    /** Level of the backpack on show, 0 when the host is not a backpack. */
+    public int level() {
+        return BackpackItem.levelOf(storageHandler.host());
+    }
+    
+    /** The 3x9 main grid stays locked until the backpack reaches level 2. */
+    public boolean mainRowsUnlocked() {
+        return level() >= 2;
+    }
+    
+    /** Pages this backpack unlocks: level 1 has one, level 5 has four. */
+    public int pageCount() {
+        return Math.max(1, level() - 1);
+    }
+    
+    public int page() {
+        return page;
+    }
+    
+    /** First slot of the current page inside the 288-slot contents component. */
+    public int pageBase() {
+        return PlayerLoadout.pageBase(page);
+    }
+    
+    public void setPage(int requested) {
+        this.page = Math.max(1, Math.min(pageCount(), requested));
+    }
+    
+    /**
+     * Window onto one 72-slot page of the 288-slot contents component. Extends the
+     * stack handler so every slot type that already accepts the storage handler
+     * accepts this view too.
+     */
+    private class PageView extends dev.fallingcloud.betterinventory.shim.ItemStackHandler {
+        private PageView() {
+            super(STORAGE_SIZE);
+        }
+    
+        @Override
+        public int getSlots() {
+            return STORAGE_SIZE;
+        }
+    
+        @Override
+        public ItemStack getStackInSlot(int slot) {
+            return storageHandler.getStackInSlot(pageBase() + slot);
+        }
+    
+        @Override
+        public void setStackInSlot(int slot, ItemStack stack) {
+            storageHandler.setStackInSlot(pageBase() + slot, stack);
+        }
+    
+        @Override
+        public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
+            return storageHandler.insertItem(pageBase() + slot, stack, simulate);
+        }
+    
+        @Override
+        public ItemStack extractItem(int slot, int amount, boolean simulate) {
+            return storageHandler.extractItem(pageBase() + slot, amount, simulate);
+        }
+    
+        @Override
+        public int getSlotLimit(int slot) {
+            return storageHandler.getSlotLimit(pageBase() + slot);
+        }
+    
+        @Override
+        public boolean isItemValid(int slot, ItemStack stack) {
+            return storageHandler.isItemValid(pageBase() + slot, stack);
+        }
+    }
+    
     /** Screen-opening data for the backpack menu, sent through the menu type's codec. */
     public record OpenData(int kind, BlockPos pos) {
         public static final StreamCodec<RegistryFriendlyByteBuf, OpenData> CODEC = StreamCodec.composite(
@@ -289,3 +365,16 @@ public class BackpackMenu extends AbstractContainerMenu {
         return copy;
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+

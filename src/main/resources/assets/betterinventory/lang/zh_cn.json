@@ -5,6 +5,9 @@
   "container.betterinventory.settings": "物品栏设置",
   "block.betterinventory.backpack": "背包",
   "key.betterinventory.offhand_selector": "副手轮换（按住 + 滚轮）",
+  "key.betterinventory.toggle_inventory_mode": "切换物品栏界面",
+  "message.betterinventory.screen_mode.mod": "物品栏界面：新版",
+  "message.betterinventory.screen_mode.vanilla": "物品栏界面：原版",
   "item.betterinventory.backpack.level": "等级 %s - %s 个升级槽",
   "item.betterinventory.backpack.contents": "已存放 %s 个物品",
   "item.betterinventory.backpack.howto": "右键打开。潜行 + 右键放置或装备。",
@@ -63,5 +66,15 @@
   "item.betterinventory.stack_upgrade_4": "堆叠升级 IV",
   "item.betterinventory.stack_upgrade_5": "堆叠升级 V",
   "item.betterinventory.stack_upgrade_6": "堆叠升级 VI",
-  "item.betterinventory.stack_upgrade_7": "堆叠升级 VII"
+  "item.betterinventory.stack_upgrade_7": "堆叠升级 VII",
+    "screen.betterinventory.page": "%s/%s",
+    "screen.betterinventory.tab.page": "背包页 %s",
+    "screen.betterinventory.tab.locked": "已锁定 - 需要等级 %s 的背包",
+    "item.betterinventory.backpack.unlocks.gather": "解锁 5x9 收集中心",
+    "item.betterinventory.backpack.unlocks.tabs": "解锁 5x9 收集中心 + %s 个背包页",
+    "message.betterinventory.pages_waiting": "更好的背包与物品栏：标签页需要重新装备背包。标签页中的物品已安全保留，装备一个有足够页数的背包后会自动移入。"
 }
+
+
+
+

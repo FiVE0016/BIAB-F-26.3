@@ -16,8 +16,13 @@ import net.minecraft.world.item.ItemStack;
  * backpack's contents component.
  */
 public class TabStorage implements Container {
-    public static final int SIZE = 45;
+    public static final int SIZE = 72;
     public static final int GATHER_START = 27;
+    
+    /** Slots in one backpack page. */
+    public static final int PAGE_SIZE = 72;
+    /** Pages a level-5 backpack holds: 4 x 72 = 288. */
+    public static final int CONTENTS_SIZE = 288;
 
     private final Player player;
     private final PlayerLoadout loadout;
@@ -42,7 +47,7 @@ public class TabStorage implements Container {
         }
         ComponentBackedHandler handler = cache[tab];
         if (handler == null || handler.host() != pack) {
-            handler = new ComponentBackedHandler(pack, ModComponents.BACKPACK_CONTENTS.get(), SIZE, loadout::storageCap);
+            handler = new ComponentBackedHandler(pack, ModComponents.BACKPACK_CONTENTS.get(), CONTENTS_SIZE, loadout::storageCap);
             handler.setChangeListener(() -> loadout.dirty = true);
             cache[tab] = handler;
         }
@@ -76,7 +81,7 @@ public class TabStorage implements Container {
             return loadout.gather.getStackInSlot(slot - GATHER_START);
         }
         ComponentBackedHandler handler = packHandler(tab);
-        return handler == null ? ItemStack.EMPTY : handler.getStackInSlot(slot);
+        return handler == null ? ItemStack.EMPTY : handler.getStackInSlot(PlayerLoadout.pageBase(tab) + slot);
     }
 
     @Override
@@ -115,7 +120,7 @@ public class TabStorage implements Container {
         }
         ComponentBackedHandler handler = packHandler(tab);
         if (handler != null) {
-            handler.setStackInSlot(slot, stack);
+            handler.setStackInSlot(PlayerLoadout.pageBase(tab) + slot, stack);
         }
     }
 
@@ -154,3 +159,7 @@ public class TabStorage implements Container {
         return tab() == 0 && index < GATHER_START;
     }
 }
+
+
+
+

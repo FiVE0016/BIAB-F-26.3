@@ -2,6 +2,7 @@ package dev.fallingcloud.betterinventory.block;
 
 import com.mojang.serialization.MapCodec;
 import dev.fallingcloud.betterinventory.menu.BackpackMenu;
+import dev.fallingcloud.betterinventory.item.BackpackItem;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -21,6 +22,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.BlockHitResult;
@@ -30,23 +32,26 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 
 public class BackpackBlock extends BaseEntityBlock {
     public static final EnumProperty<net.minecraft.core.Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
+    public static final IntegerProperty TIER = IntegerProperty.create("tier", 1, 5);
 
     private static final VoxelShape SHAPE_NS = Shapes.box(3 / 16.0, 0, 4.5 / 16.0, 13 / 16.0, 10 / 16.0, 11.5 / 16.0);
     private static final VoxelShape SHAPE_EW = Shapes.box(4.5 / 16.0, 0, 3 / 16.0, 11.5 / 16.0, 10 / 16.0, 13 / 16.0);
 
     public BackpackBlock(Properties properties) {
         super(properties);
-        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH));
+        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(TIER, 1));
     }
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FACING);
+        builder.add(FACING, TIER);
     }
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        return defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
+        int level = context.getItemInHand().getItem() instanceof BackpackItem pack ? pack.level() : 1;
+        return defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite())
+                .setValue(TIER, Math.min(5, Math.max(1, level)));
     }
 
     @Override
@@ -90,3 +95,9 @@ public class BackpackBlock extends BaseEntityBlock {
         return super.getCloneItemStack(level, pos, state, includeData);
     }
 }
+
+
+
+
+
+

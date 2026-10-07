@@ -30,7 +30,7 @@ public class BackpackScreen extends AbstractContainerScreen<BackpackMenu> {
 
     @Override
     public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
-        graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight, 256, 256);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight, 256, 512);
     }
 
     @Override
@@ -79,7 +79,7 @@ public class BackpackScreen extends AbstractContainerScreen<BackpackMenu> {
     private boolean onMouseClick(net.minecraft.client.input.MouseButtonEvent event, boolean doubleClick) {
         double mouseX = event.x(), mouseY = event.y();
         int button = event.button();
-        if (button == 2 && handleLockClick()) {
+        if (button == 3 && handleLockClick()) {
             return true;
         }
         return super.mouseClicked(event, doubleClick);
@@ -107,3 +107,4 @@ public class BackpackScreen extends AbstractContainerScreen<BackpackMenu> {
         return false;
     }
 }
+
