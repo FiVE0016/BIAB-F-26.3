@@ -13,7 +13,9 @@
                    "PlayerToolChoiceMixin",
                    "ServerPlayerDeathMixin",
                    "ServerPlayerGameModeMixin",
-                   "SlotStackSizeMixin"
+                   "SlotStackSizeMixin",
+                   "VillagerTradesMixin",
+                   "WanderingTraderTradesMixin"
                ],
     "client":  [
                    "AvatarRendererMixin",

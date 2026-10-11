@@ -1,5 +1,6 @@
 package dev.fallingcloud.betterinventory.logic;
 
+import net.fabricmc.fabric.api.entity.event.v1.ServerEntityLevelChangeEvents;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
@@ -11,10 +12,9 @@ import net.minecraft.server.level.ServerPlayer;
  * Fabric wiring for the 1.4.1 CommonEvents set: the per-tick pipeline is
  * {@link PlayerHooks#playerTick}, plus login/logout/respawn/clone handlers.
  *
- * <p>26.3 adaptation: the fabric dimension-change event
- * (ServerEntityWorldChangeEvents) no longer exists, so the respawn/dimension
- * sync is covered by AFTER_RESPAWN and the after-death sync; a dedicated
- * dimension-change hook can ride the new mixins later if needed. The
+ * <p>26.3 adaptation: the dimension-change event was renamed
+ * ServerEntityWorldChangeEvents → {@link ServerEntityLevelChangeEvents}
+ * (AFTER_PLAYER_CHANGE_LEVEL), so the 1.4.1 dimension sync returns here. The
  * AFTER_DEATH sync below is kept from the previous port iteration - it stays
  * harmless once the death mixin lands.
  */
@@ -32,6 +32,8 @@ public final class FabricCommonEvents {
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> PlayerHooks.onLogout(handler.player));
         ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) ->
                 PlayerHooks.onRespawnOrDimensionChange(newPlayer));
+        ServerEntityLevelChangeEvents.AFTER_PLAYER_CHANGE_LEVEL.register((player, origin, destination) ->
+                PlayerHooks.onRespawnOrDimensionChange(player));
         ServerPlayerEvents.COPY_FROM.register((oldPlayer, newPlayer, alive) ->
                 PlayerHooks.onClone(oldPlayer, newPlayer, !alive));
     }

@@ -14,23 +14,27 @@ import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.fabricmc.fabric.api.client.rendering.v1.LivingEntityRenderLayerRegistrationCallback;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
+import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
+import net.fabricmc.fabric.api.resource.ResourcePackActivationType;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.model.player.PlayerModel;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.state.AvatarRenderState;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.EntityTypes;
 
 /**
  * 1.4.1 client entrypoint.
  *
  * <p>26.3 adaptations: key bindings live under {@code client.keymapping.v1}
- * (KeyMappingHelper) and HUD layers use {@link HudElementRegistry}. Two 1.4.1
- * registrations are deferred: the vanilla_style built-in pack (26.3
- * fabric-resource-loader dropped the API) and the worn-backpack layer (26.3
- * replaced PlayerRenderer with AvatarRenderer and rewrote layer states) -
- * both return in unit F-2/G.
+ * (KeyMappingHelper) and HUD layers use {@link HudElementRegistry}; the worn
+ * backpack layer registers through
+ * {@link LivingEntityRenderLayerRegistrationCallback} (AvatarRenderer), and the
+ * vanilla_style built-in pack keeps using ResourceManagerHelper - still present
+ * in the 26.3 fabric-resource-loader build.
  */
 public final class BetterInventoryClient implements ClientModInitializer {
     public static final KeyMapping OFFHAND_SELECTOR = KeyMappingHelper.registerKeyMapping(new KeyMapping(
@@ -65,6 +69,16 @@ public final class BetterInventoryClient implements ClientModInitializer {
         HudElementRegistry.attachElementAfter(VanillaHudElements.HOTBAR,
                 BetterInventory.id("offhand_selector"),
                 (graphics, delta) -> BetterInventoryHud.renderOffhandSelector(graphics, delta));
+
+        // G-2: vanilla_style 内置资源包（可见、默认关闭）。26.3 版
+        // fabric-resource-loader 仍提供 ResourceManagerHelper，包体在
+        // resources/resourcepacks/vanilla_style。
+        FabricLoader.getInstance().getModContainer(BetterInventory.MODID).ifPresent(container ->
+                ResourceManagerHelper.registerBuiltinResourcePack(
+                        BetterInventory.id("vanilla_style"),
+                        container,
+                        Component.translatable("Better Inventory - Vanilla Style"),
+                        ResourcePackActivationType.NORMAL));
 
         // F-2d：背着背包渲染层。26.3 用 AvatarRenderer 替代 PlayerRenderer，
         // 渲染层注册走 fabric 的 LivingEntityRenderLayerRegistrationCallback。

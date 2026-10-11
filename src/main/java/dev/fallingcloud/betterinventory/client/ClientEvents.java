@@ -46,6 +46,9 @@ public final class ClientEvents {
             ClientHooks.onLeftClickBlock(player, level, pos);
             return InteractionResult.PASS;
         });
-        // TODO(F-2): ClientSelfTest.enabled() 时注册 ClientSelfTest::tick。
+        // F-2b 接线：selftest 属性开启时跑 ClientSelfTest 每 tick 自检。
+        if (ClientSelfTest.enabled()) {
+            ClientTickEvents.END_CLIENT_TICK.register(ClientSelfTest::tick);
+        }
     }
 }
