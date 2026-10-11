@@ -39,9 +39,11 @@ public class SettingsScreen extends AbstractContainerScreen<SettingsMenu> {
     private static final int MARGIN = 10;
     private static final int ROW_H = 17;
     private static final int BTN_H = 16;
-    private static final int LABEL_COLOR = 4144966;
-    private static final int HEADER_COLOR = 2236970;
-    private static final int MUTED_COLOR = 8026754;
+    // 26.3: GuiGraphicsExtractor.text 在 ARGB.alpha(color)==0 时直接 return（不画），
+    // 必须带上不透明 alpha；1.21.1 会自动补，所以 1.4.1 的无 alpha 常量到这边会"消失"。
+    private static final int LABEL_COLOR = 0xFF3F3F46;
+    private static final int HEADER_COLOR = 0xFF222AAA;
+    private static final int MUTED_COLOR = 0xFF7A7A82;
     private final List<Row> rows = new ArrayList<>();
     private final List<Button> upgradeButtons = new ArrayList<>();
     private final List<UpgradePaint> upgradePaints = new ArrayList<>();

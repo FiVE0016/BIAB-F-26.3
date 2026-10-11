@@ -141,7 +141,7 @@ public class BlockChooserScreen extends Screen {
     private void drawPanel(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         graphics.fill(panelLeft - 1, panelTop - 1, panelLeft + PANEL_W + 1, panelTop + PANEL_H + 1, 0xFF000000);
         graphics.fill(panelLeft, panelTop, panelLeft + PANEL_W, panelTop + PANEL_H, 0xFFC6C6C6);
-        graphics.text(font, title, panelLeft + 10, panelTop + 8, 0x404040, false);
+        graphics.text(font, title, panelLeft + 10, panelTop + 8, 0xFF404040, false);
 
         int top = listTop();
         int max = Math.min(filtered.size(), scroll + VISIBLE_ROWS);
@@ -157,7 +157,7 @@ public class BlockChooserScreen extends Screen {
             ItemStack icon = new ItemStack(block.asItem());
             graphics.fakeItem(icon, panelLeft + 11, rowY + 1);
             graphics.text(font, block.getName(), panelLeft + 32, rowY + 5,
-                    isSelected ? 0x226622 : 0x303030, false);
+                    isSelected ? 0xFF226622 : 0xFF303030, false);
             // checkbox
             int boxX = panelLeft + PANEL_W - 24;
             graphics.fill(boxX, rowY + 3, boxX + 12, rowY + 15, 0xFF555555);
@@ -165,11 +165,11 @@ public class BlockChooserScreen extends Screen {
         }
         if (filtered.isEmpty()) {
             graphics.centeredText(font, Component.translatable("screen.betterinventory.chooser.none"),
-                    panelLeft + PANEL_W / 2, top + 30, 0xFFFFFF);
+                    panelLeft + PANEL_W / 2, top + 30, 0xFFFFFFFF);
         }
         int count = selected.size();
         graphics.text(font, Component.translatable("screen.betterinventory.chooser.count", count),
-                panelLeft + 10, panelTop + PANEL_H - 38, 0x404040, false);
+                panelLeft + 10, panelTop + PANEL_H - 38, 0xFF404040, false);
     }
 
     @Override

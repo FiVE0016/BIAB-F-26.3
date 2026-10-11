@@ -34,7 +34,8 @@ import org.jetbrains.annotations.Nullable;
  */
 public final class EffectRow {
     private static final Identifier TEXTURE = BetterInventory.id("textures/gui/inventory.png");
-    private static final int TEXT_COLOR = 16777215;
+    /** 26.3 的 text() 在 ARGB.alpha==0 时直接不画，必须带不透明 alpha。 */
+    private static final int TEXT_COLOR = 0xFFFFFFFF;
     private static final int TOOLTIP_MIN_Y = 16;
 
     private EffectRow() {}
