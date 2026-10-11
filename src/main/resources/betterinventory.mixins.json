@@ -4,21 +4,29 @@
     "package":  "dev.fallingcloud.betterinventory.mixin",
     "compatibilityLevel":  "JAVA_25",
     "mixins":  [
+                   "BundleContentsMixin",
                    "ContainerCursorMixin",
                    "InventoryStackSizeMixin",
+                   "ItemEntityPickupMixin",
                    "ItemStackCountCodecMixin",
                    "PlayerCombatMixin",
+                   "PlayerToolChoiceMixin",
+                   "ServerPlayerDeathMixin",
                    "ServerPlayerGameModeMixin",
                    "SlotStackSizeMixin"
                ],
     "client":  [
-                   "GuiGraphicsCountMixin",
+                   "AvatarRendererMixin",
+                   "CreativeScreenMixin",
                    "CreativeStackSizeMixin",
-                   "GuiSetScreenMixin",
+                   "FirstPersonHandsAndItemsMixin",
+                   "FirstPersonHandsRendererMixin",
+                   "GuiGraphicsCountMixin",
+                   "GuiScreenMixin",
                    "MouseScrollMixin",
-                    "KeyboardKeyPressMixin"
+                   "PlayerHandItemMixin"
                ],
     "injectors":  {
-                      "defaultRequire":  1
-                  }
+                       "defaultRequire":  1
+                   }
 }

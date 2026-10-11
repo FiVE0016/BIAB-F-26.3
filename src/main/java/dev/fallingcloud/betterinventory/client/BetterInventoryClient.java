@@ -88,12 +88,4 @@ public final class BetterInventoryClient implements ClientModInitializer {
                 (RenderLayerParent<AvatarRenderState, PlayerModel>) (RenderLayerParent<?, ?>) renderer;
         return new BackpackLayer(parent);
     }
-
-    // -- 1.0.0-compat key/toggle, used by the not-yet-replaced mixins --------
-
-    /** Unbound by default; the player picks a key in Options > Controls. */
-    public static final KeyMapping TOGGLE_INVENTORY_MODE = KeyMappingHelper.registerKeyMapping(new KeyMapping(
-            "key.betterinventory.toggle_inventory_mode",
-            InputConstants.UNKNOWN.getValue(),
-            KeyMapping.Category.register(BetterInventory.id("inventory"))));
 }

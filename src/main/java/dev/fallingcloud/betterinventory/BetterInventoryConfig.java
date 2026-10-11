@@ -136,22 +136,6 @@ public final class BetterInventoryConfig {
             "Turn off if another mod already draws a pack there, or you would rather not see one."
     );
 
-    /**
-     * 26.3 Fabric adaptation kept from the previous port iteration: which screen the E
-     * key opens. {@link dev.fallingcloud.betterinventory.mixin.GuiSetScreenMixin} reads it
-     * on the client. AUTO keeps creative vanilla (its swap happens in init()), MOD/VANILLA
-     * are the two states the in-game toggle flips between.
-     */
-    public enum ScreenMode { AUTO, MOD, VANILLA }
-
-    public static final Value<ScreenMode> SCREEN_MODE = CLIENT_SPEC.defineEnum(
-            "inventory",
-            "screenMode",
-            ScreenMode.AUTO,
-            "Which inventory screen the E key opens: AUTO (creative vanilla, survival mod),",
-            "MOD (always the mod screen) or VANILLA (always Minecraft's own screen)."
-    );
-
     public static final Spec COMMON_SPEC = new Spec("common");
     public static final Value<Boolean> WORN_TOOL_FLOOR = COMMON_SPEC.define(
             "gameplay",

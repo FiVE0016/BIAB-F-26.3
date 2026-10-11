@@ -1,0 +1,14 @@
+{
+    "required":  true,
+    "minVersion":  "0.8",
+    "package":  "dev.fallingcloud.betterinventory.mixin.compat",
+    "compatibilityLevel":  "JAVA_25",
+    "plugin":  "dev.fallingcloud.betterinventory.compat.BetterCombatMixinPlugin",
+    "mixins":  [
+                   "BetterCombatAttackHelperMixin",
+                   "BetterCombatWeaponRegistryMixin"
+               ],
+    "injectors":  {
+                       "defaultRequire":  0
+                   }
+}

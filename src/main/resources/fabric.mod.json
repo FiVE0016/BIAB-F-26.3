@@ -12,7 +12,7 @@
     "main": ["dev.fallingcloud.betterinventory.BetterInventory"],
     "client": ["dev.fallingcloud.betterinventory.client.BetterInventoryClient"]
   },
-  "mixins": ["betterinventory.mixins.json"],
+  "mixins": ["betterinventory.mixins.json", "betterinventory.compat.mixins.json"],
   "depends": {
     "fabricloader": ">=0.19.5",
     "minecraft": "~26.3",
