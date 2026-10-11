@@ -1,6 +1,7 @@
 package dev.fallingcloud.betterinventory.registry;
 
 import dev.fallingcloud.betterinventory.BetterInventory;
+import dev.fallingcloud.betterinventory.data.LoadoutOrigin;
 import dev.fallingcloud.betterinventory.data.StoredItems;
 import dev.fallingcloud.betterinventory.data.TabSettings;
 import java.util.function.Supplier;
@@ -33,6 +34,15 @@ public final class ModComponents {
             () -> DataComponentType.<TabSettings>builder()
                     .persistent(TabSettings.CODEC)
                     .networkSynchronized(TabSettings.STREAM_CODEC)
+                    .cacheEncoding()
+                    .build());
+
+    /** 1.4.1: which player/section/slot a stored stack originally came from (loadout filler). */
+    public static final Supplier<DataComponentType<LoadoutOrigin>> LOADOUT_ORIGIN = COMPONENTS.register(
+            "loadout_origin",
+            () -> DataComponentType.<LoadoutOrigin>builder()
+                    .persistent(LoadoutOrigin.CODEC)
+                    .networkSynchronized(LoadoutOrigin.STREAM_CODEC)
                     .cacheEncoding()
                     .build());
 

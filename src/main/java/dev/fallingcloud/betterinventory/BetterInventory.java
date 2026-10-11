@@ -12,6 +12,8 @@ import dev.fallingcloud.betterinventory.registry.ModItems;
 import dev.fallingcloud.betterinventory.registry.ModMenus;
 import net.fabricmc.api.ModInitializer;
 import net.minecraft.resources.Identifier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Fabric entry point for BetterInventory (Minecraft 26.3).
@@ -21,6 +23,7 @@ import net.minecraft.resources.Identifier;
  */
 public final class BetterInventory implements ModInitializer {
     public static final String MODID = "betterinventory";
+    public static final Logger LOGGER = LoggerFactory.getLogger("betterinventory");
 
     public static Identifier id(String path) {
         return Identifier.fromNamespaceAndPath(MODID, path);

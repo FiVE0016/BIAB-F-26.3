@@ -1,13 +1,14 @@
 package dev.fallingcloud.betterinventory.item;
 
 import dev.fallingcloud.betterinventory.BetterInventoryConfig;
+import java.util.function.Consumer;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
 
-/**
- * Raises the max stack size inside BetterInventory storage (gather hub + backpack tabs) when
- * placed in the personal stack-upgrade slot. Seven tiers; values depend on the
- * configured stack mode.
- */
 public class StackUpgradeItem extends Item {
     private final int tier;
 
@@ -17,11 +18,21 @@ public class StackUpgradeItem extends Item {
     }
 
     public int tier() {
-        return tier;
+        return this.tier;
     }
 
     public int capacity() {
-        return BetterInventoryConfig.tierValue(tier);
+        return BetterInventoryConfig.tierValue(this.tier);
     }
 
+    @Override
+    @SuppressWarnings("deprecation")
+    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay tooltipDisplay,
+            Consumer<Component> tooltip, TooltipFlag flag) {
+        tooltip.accept(Component.translatable("item.betterinventory.stack_upgrade.desc", this.capacity())
+                .withStyle(ChatFormatting.DARK_PURPLE));
+        tooltip.accept(Component.translatable("item.betterinventory.stack_upgrade.scope")
+                .withStyle(ChatFormatting.GRAY));
+        super.appendHoverText(stack, context, tooltipDisplay, tooltip, flag);
+    }
 }
