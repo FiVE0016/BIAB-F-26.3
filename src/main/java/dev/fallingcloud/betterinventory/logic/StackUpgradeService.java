@@ -2,7 +2,6 @@ package dev.fallingcloud.betterinventory.logic;
 
 import dev.fallingcloud.betterinventory.BetterInventoryConfig;
 import dev.fallingcloud.betterinventory.inv.PlayerLoadout;
-import dev.fallingcloud.betterinventory.registry.ModAttachments;
 import java.util.IdentityHashMap;
 import java.util.Map;
 import net.minecraft.core.component.DataComponents;
@@ -54,7 +53,8 @@ public final class StackUpgradeService {
         if (player == null) {
             return normalBase();
         }
-        PlayerLoadout loadout = ModAttachments.get(player);
+        // 1.4.1: read via existing() so a mere lookup never creates the attachment.
+        PlayerLoadout loadout = PlayerLoadout.existing(player);
         return loadout == null ? normalBase() : Math.max(normalBase(), loadout.storageCap());
     }
 

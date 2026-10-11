@@ -3,7 +3,6 @@ package dev.fallingcloud.betterinventory.logic;
 import dev.fallingcloud.betterinventory.data.TabSettings;
 import dev.fallingcloud.betterinventory.inv.BetterInventorySettings;
 import dev.fallingcloud.betterinventory.inv.PlayerLoadout;
-import dev.fallingcloud.betterinventory.registry.ModAttachments;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -17,41 +16,53 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Chooses which rack tool (if any) should virtually replace the held item for a
  * given block, and reimplements the vanilla dig-speed formula for that tool.
  */
 public final class ToolService {
+    /** 1.4.1: a rack tool must be at least this much faster than the hand to engage. */
+    private static final float MIN_SPEED_GAIN = 2.0F;
+
     private ToolService() {}
 
     public record ToolChoice(int slot, ItemStack stack) {}
 
     /**
      * The rack tool to use for this block, or empty when the held item is already
-     * the best option (or nothing in the rack applies).
+     * the best option (or nothing in the rack applies). 1.4.1 also engages the
+     * rack when it unlocks drops or is twice as fast, even without "correct tool".
      */
     public static Optional<ToolChoice> forBlock(Player player, BlockState state) {
+        return forBlock(player, state, null);
+    }
+
+    public static Optional<ToolChoice> forBlock(Player player, BlockState state, @Nullable BlockPos pos) {
         if (player.isSpectator() || player.isCreative()) {
             return Optional.empty();
         }
-        PlayerLoadout loadout = ModAttachments.get(player);
+        PlayerLoadout loadout = PlayerLoadout.existing(player);
         if (loadout == null) {
+            return Optional.empty();
+        }
+        if (state.getDestroySpeed(player.level(), pos == null ? BlockPos.ZERO : pos) <= 0.0f) {
             return Optional.empty();
         }
 
         int bestSlot = -1;
         ItemStack bestStack = ItemStack.EMPTY;
         boolean bestCorrect = false;
-        float bestSpeed = 1.0f;
+        float bestSpeed = digSpeedWith(player, ItemStack.EMPTY, state);
 
         for (int slot : candidateSlots(player, loadout, state)) {
             ItemStack stack = loadout.tools.getStackInSlot(slot);
-            if (stack.isEmpty()) {
+            if (stack.isEmpty() || BrokenTools.isUnusable(stack)) {
                 continue;
             }
             boolean correct = stack.isCorrectToolForDrops(state);
-            float speed = stack.getDestroySpeed(state);
+            float speed = digSpeedWith(player, stack, state);
             if (isBetter(correct, speed, bestCorrect, bestSpeed)) {
                 bestSlot = slot;
                 bestStack = stack;
@@ -62,15 +73,14 @@ public final class ToolService {
         if (bestSlot < 0) {
             return Optional.empty();
         }
-        // Never engage a tool that is useless on this block.
-        if (!bestCorrect && bestSpeed <= 1.0f) {
-            return Optional.empty();
-        }
 
         ItemStack main = player.getMainHandItem();
         boolean mainCorrect = main.isCorrectToolForDrops(state);
-        float mainSpeed = main.getDestroySpeed(state);
-        if (!isBetter(bestCorrect, bestSpeed, mainCorrect, mainSpeed)) {
+        float mainSpeed = digSpeedWith(player, main, state);
+        boolean unlocksDrops = state.requiresCorrectToolForDrops() && bestCorrect && !mainCorrect;
+        boolean rightToolAndFaster = bestCorrect && bestSpeed > mainSpeed;
+        boolean meaningfullyFaster = bestSpeed >= mainSpeed * MIN_SPEED_GAIN;
+        if (!unlocksDrops && !rightToolAndFaster && !meaningfullyFaster) {
             return Optional.empty();
         }
         return Optional.of(new ToolChoice(bestSlot, bestStack));
@@ -167,6 +177,6 @@ public final class ToolService {
     /** Resolves the choice for the block at the given position (server destroy path). */
     public static ItemStack toolForDestroy(Player player, BlockPos pos, ItemStack fallback) {
         BlockState state = player.level().getBlockState(pos);
-        return forBlock(player, state).map(ToolChoice::stack).orElse(fallback);
+        return forBlock(player, state, pos).map(ToolChoice::stack).orElse(fallback);
     }
 }
