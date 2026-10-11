@@ -7,18 +7,10 @@
     "LLL"
   ],
   "key": {
-    "H": {
-      "item": "minecraft:shulker_shell"
-    },
-    "L": {
-      "item": "minecraft:leather"
-    },
-    "C": {
-      "item": "minecraft:chain"
-    },
-    "3": {
-      "item": "betterinventory:backpack_3"
-    }
+    "H": "minecraft:shulker_shell",
+    "L": "minecraft:leather",
+    "C": "minecraft:chain",
+    "3": "betterinventory:backpack_3"
   },
   "result": {
     "id": "betterinventory:backpack_4",

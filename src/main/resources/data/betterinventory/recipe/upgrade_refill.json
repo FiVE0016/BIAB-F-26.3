@@ -7,15 +7,9 @@
     " R "
   ],
   "key": {
-    "A": {
-      "item": "minecraft:arrow"
-    },
-    "H": {
-      "item": "minecraft:hopper"
-    },
-    "R": {
-      "item": "minecraft:redstone"
-    }
+    "A": "minecraft:arrow",
+    "H": "minecraft:hopper",
+    "R": "minecraft:redstone"
   },
   "result": {
     "id": "betterinventory:upgrade_refill",

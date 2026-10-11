@@ -7,12 +7,8 @@
     " M "
   ],
   "key": {
-    "M": {
-      "item": "minecraft:gold_ingot"
-    },
-    "U": {
-      "item": "betterinventory:upgrade_feeding"
-    }
+    "M": "minecraft:gold_ingot",
+    "U": "betterinventory:upgrade_feeding"
   },
   "result": {
     "id": "betterinventory:upgrade_feeding_2",

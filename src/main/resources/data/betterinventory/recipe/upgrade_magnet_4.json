@@ -7,12 +7,8 @@
     " M "
   ],
   "key": {
-    "M": {
-      "item": "minecraft:emerald"
-    },
-    "U": {
-      "item": "betterinventory:upgrade_magnet_3"
-    }
+    "M": "minecraft:emerald",
+    "U": "betterinventory:upgrade_magnet_3"
   },
   "result": {
     "id": "betterinventory:upgrade_magnet_4",

@@ -7,12 +7,8 @@
     " M "
   ],
   "key": {
-    "M": {
-      "item": "minecraft:netherite_ingot"
-    },
-    "U": {
-      "item": "betterinventory:upgrade_feeding_4"
-    }
+    "M": "minecraft:netherite_ingot",
+    "U": "betterinventory:upgrade_feeding_4"
   },
   "result": {
     "id": "betterinventory:upgrade_feeding_5",

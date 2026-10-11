@@ -7,15 +7,9 @@
     "STS"
   ],
   "key": {
-    "S": {
-      "item": "minecraft:stick"
-    },
-    "T": {
-      "item": "minecraft:crafting_table"
-    },
-    "C": {
-      "item": "minecraft:diamond"
-    }
+    "S": "minecraft:stick",
+    "T": "minecraft:crafting_table",
+    "C": "minecraft:diamond"
   },
   "result": {
     "id": "betterinventory:crafting_upgrade",

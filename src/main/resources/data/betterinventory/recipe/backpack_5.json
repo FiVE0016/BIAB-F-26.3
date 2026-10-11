@@ -7,24 +7,12 @@
     "BDB"
   ],
   "key": {
-    "I": {
-      "item": "minecraft:netherite_ingot"
-    },
-    "N": {
-      "item": "minecraft:nether_star"
-    },
-    "E": {
-      "item": "minecraft:echo_shard"
-    },
-    "4": {
-      "item": "betterinventory:backpack_4"
-    },
-    "B": {
-      "item": "minecraft:obsidian"
-    },
-    "D": {
-      "item": "minecraft:dragon_breath"
-    }
+    "I": "minecraft:netherite_ingot",
+    "N": "minecraft:nether_star",
+    "E": "minecraft:echo_shard",
+    "4": "betterinventory:backpack_4",
+    "B": "minecraft:obsidian",
+    "D": "minecraft:dragon_breath"
   },
   "result": {
     "id": "betterinventory:backpack_5",

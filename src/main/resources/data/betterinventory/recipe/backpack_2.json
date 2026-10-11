@@ -7,21 +7,11 @@
     "LDL"
   ],
   "key": {
-    "B": {
-      "item": "minecraft:bundle"
-    },
-    "S": {
-      "item": "minecraft:string"
-    },
-    "1": {
-      "item": "betterinventory:backpack_1"
-    },
-    "L": {
-      "item": "minecraft:leather"
-    },
-    "D": {
-      "item": "minecraft:diamond"
-    }
+    "B": "minecraft:bundle",
+    "S": "minecraft:string",
+    "1": "betterinventory:backpack_1",
+    "L": "minecraft:leather",
+    "D": "minecraft:diamond"
   },
   "result": {
     "id": "betterinventory:backpack_2",

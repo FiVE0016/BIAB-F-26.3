@@ -7,12 +7,8 @@
     " M "
   ],
   "key": {
-    "M": {
-      "item": "minecraft:gold_ingot"
-    },
-    "U": {
-      "item": "betterinventory:upgrade_pickup"
-    }
+    "M": "minecraft:gold_ingot",
+    "U": "betterinventory:upgrade_pickup"
   },
   "result": {
     "id": "betterinventory:upgrade_pickup_2",

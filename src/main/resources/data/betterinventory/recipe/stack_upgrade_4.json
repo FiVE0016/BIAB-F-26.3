@@ -7,12 +7,8 @@
     "MMM"
   ],
   "key": {
-    "M": {
-      "item": "minecraft:gold_ingot"
-    },
-    "U": {
-      "item": "betterinventory:stack_upgrade_3"
-    }
+    "M": "minecraft:gold_ingot",
+    "U": "betterinventory:stack_upgrade_3"
   },
   "result": {
     "id": "betterinventory:stack_upgrade_4",

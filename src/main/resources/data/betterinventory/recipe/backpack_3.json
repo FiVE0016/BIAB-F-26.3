@@ -7,21 +7,11 @@
     "LNL"
   ],
   "key": {
-    "L": {
-      "item": "minecraft:leather"
-    },
-    "K": {
-      "item": "betterinventory:travelers_knot"
-    },
-    "I": {
-      "item": "minecraft:iron_ingot"
-    },
-    "2": {
-      "item": "betterinventory:backpack_2"
-    },
-    "N": {
-      "item": "minecraft:netherite_ingot"
-    }
+    "L": "minecraft:leather",
+    "K": "betterinventory:travelers_knot",
+    "I": "minecraft:iron_ingot",
+    "2": "betterinventory:backpack_2",
+    "N": "minecraft:netherite_ingot"
   },
   "result": {
     "id": "betterinventory:backpack_3",

@@ -7,15 +7,9 @@
     "WWW"
   ],
   "key": {
-    "S": {
-      "item": "minecraft:string"
-    },
-    "W": {
-      "tag": "minecraft:wool"
-    },
-    "C": {
-      "item": "minecraft:chest"
-    }
+    "S": "minecraft:string",
+    "W": "#minecraft:wool",
+    "C": "minecraft:chest"
   },
   "result": {
     "id": "betterinventory:backpack_1",

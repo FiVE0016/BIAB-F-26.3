@@ -7,12 +7,8 @@
     "MMM"
   ],
   "key": {
-    "M": {
-      "item": "minecraft:copper_ingot"
-    },
-    "U": {
-      "item": "betterinventory:stack_upgrade_1"
-    }
+    "M": "minecraft:copper_ingot",
+    "U": "betterinventory:stack_upgrade_1"
   },
   "result": {
     "id": "betterinventory:stack_upgrade_2",

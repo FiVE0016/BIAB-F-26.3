@@ -7,12 +7,8 @@
     " M "
   ],
   "key": {
-    "M": {
-      "item": "minecraft:diamond"
-    },
-    "U": {
-      "item": "betterinventory:upgrade_feeding_2"
-    }
+    "M": "minecraft:diamond",
+    "U": "betterinventory:upgrade_feeding_2"
   },
   "result": {
     "id": "betterinventory:upgrade_feeding_3",
