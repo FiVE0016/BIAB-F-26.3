@@ -63,16 +63,19 @@ public final class ClientHooks {
     }
 
     /**
-     * 1.4.1 的选中光效是原版 18x18 填充（slot.x-1 ~ slot.x+17），正好压住槽位外框；
-     * 26.3 换成了只覆盖 16x16 凹槽的精灵，在 1.4.1 的美术下看起来会缩向左上。
-     * 我们的屏幕因此自行绘制旧式光效，并由 SlotHighlightMixin 取消原版那两层。
+     * 1.4.1 的选中光效是原版 18x18 填充；26.3 换成了只覆盖 16x16 凹槽的精灵，
+     * 在 1.4.1 的美术下看起来会缩向左上，故我们的屏幕自行绘制。
+     *
+     * <p>起点用 {@code (slot.x, slot.y)}：本模组美术里每格是 17x17 凹槽 + 1px
+     * 分隔线，边线起点正好等于槽位坐标（1.21.1 的 {@code x-1} 写法在这里会整体
+     * 偏左上 1px）。
      */
     public static void paintSlotHighlight(GuiGraphicsExtractor graphics, int leftPos, int topPos, Slot slot) {
         if (slot == null || !slot.isHighlightable()) {
             return;
         }
-        graphics.fill(leftPos + slot.x - 1, topPos + slot.y - 1,
-                leftPos + slot.x + 17, topPos + slot.y + 17, SLOT_HIGHLIGHT);
+        graphics.fill(leftPos + slot.x, topPos + slot.y,
+                leftPos + slot.x + 18, topPos + slot.y + 18, SLOT_HIGHLIGHT);
     }
 
     public static boolean onScreenClicked(Screen screen, double mouseX, double mouseY, int button) {

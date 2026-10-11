@@ -112,18 +112,23 @@ public final class BackpackLayer extends RenderLayer<AvatarRenderState, PlayerMo
      * 26.3 的物品模型已解析进 {@link ItemStackRenderState}，直接用
      * {@code visitExtents} 取顶点范围（1.4.1 的 BakedQuad 包围盒等价物）。
      * 渲染状态每帧重建，无法像旧版按 BakedModel 缓存，且遍历成本极低，故不缓存。
+     *
+     * <p><b>坐标空间</b>：{@code visitExtents} 给的是物品渲染空间——方块类模型已被
+     * 居中到原点（约 -0.5..0.5），而 1.4.1 的 {@code measure()} 量的是 BakedModel
+     * 原始坐标（0..1）。因此这里统一 +0.5 归一到 0..1，否则下面的居中偏移会算成
+     * 半个方块（实机日志：偏移 x=0.425，实际应为 0——背包因此飘在身体外）。
      */
     private static float[] measure(ItemStackRenderState rendered) {
         float[] b = new float[]{
                 Float.MAX_VALUE, Float.MAX_VALUE, Float.MAX_VALUE,
                 -Float.MAX_VALUE, -Float.MAX_VALUE, -Float.MAX_VALUE};
         rendered.visitExtents(v -> {
-            b[0] = Math.min(b[0], v.x());
-            b[1] = Math.min(b[1], v.y());
-            b[2] = Math.min(b[2], v.z());
-            b[3] = Math.max(b[3], v.x());
-            b[4] = Math.max(b[4], v.y());
-            b[5] = Math.max(b[5], v.z());
+            b[0] = Math.min(b[0], v.x() + 0.5F);
+            b[1] = Math.min(b[1], v.y() + 0.5F);
+            b[2] = Math.min(b[2], v.z() + 0.5F);
+            b[3] = Math.max(b[3], v.x() + 0.5F);
+            b[4] = Math.max(b[4], v.y() + 0.5F);
+            b[5] = Math.max(b[5], v.z() + 0.5F);
         });
         return b[0] <= b[3] ? b : new float[]{0.0F, 0.0F, 0.0F, 1.0F, 1.0F, 1.0F};
     }
