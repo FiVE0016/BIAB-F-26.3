@@ -25,6 +25,7 @@
                    "FirstPersonHandsRendererMixin",
                    "GuiGraphicsCountMixin",
                    "GuiScreenMixin",
+                   "LivingEntityHandItemMixin",
                    "MouseScrollMixin",
                    "PlayerHandItemMixin"
                ],
