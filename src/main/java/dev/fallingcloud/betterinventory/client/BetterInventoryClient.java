@@ -37,20 +37,23 @@ import net.minecraft.world.entity.EntityTypes;
  * in the 26.3 fabric-resource-loader build.
  */
 public final class BetterInventoryClient implements ClientModInitializer {
+    /** 26.3 Category.register 对重复 id 抛异常，只注册一次、三处复用。 */
+    private static final KeyMapping.Category CATEGORY = KeyMapping.Category.register(BetterInventory.id("inventory"));
+
     public static final KeyMapping OFFHAND_SELECTOR = KeyMappingHelper.registerKeyMapping(new KeyMapping(
             "key.betterinventory.offhand_selector",
             InputConstants.Type.KEYBOARD,
             OffhandKey.defaultKey(),
-            KeyMapping.Category.register(BetterInventory.id("inventory"))));
+            CATEGORY));
     public static final KeyMapping MARK_SAFE_ENTITY = KeyMappingHelper.registerKeyMapping(new KeyMapping(
             "key.betterinventory.mark_safe_entity",
             InputConstants.Type.KEYBOARD,
             59,
-            KeyMapping.Category.register(BetterInventory.id("inventory"))));
+            CATEGORY));
     public static final KeyMapping OPEN_VANILLA_INVENTORY = KeyMappingHelper.registerKeyMapping(new KeyMapping(
             "key.betterinventory.open_vanilla_inventory",
             InputConstants.UNKNOWN.getValue(),
-            KeyMapping.Category.register(BetterInventory.id("inventory"))));
+            CATEGORY));
 
     @Override
     public void onInitializeClient() {
