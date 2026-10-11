@@ -32,6 +32,22 @@ public final class BackpackLayer extends RenderLayer<AvatarRenderState, PlayerMo
     private static final float SCALE = 0.85F;
     private static final float BACK_FACE = 0.109375F;
     private static final float CENTRE_Y = 0.3125F;
+    private static final org.slf4j.Logger BACKPACK_LAYER_LOGGER =
+            org.slf4j.LoggerFactory.getLogger("betterinventory/backpack-layer");
+    /** 诊断去重：结果不变时最多每 2 秒（40 tick）打一条。 */
+    private static String betterinventory$lastOutcome;
+    private static long betterinventory$lastLogTick;
+
+    private static void diagnose(org.slf4j.Logger logger, AvatarRenderState state, String outcome) {
+        Minecraft minecraft = Minecraft.getInstance();
+        long now = minecraft.level == null ? 0L : minecraft.level.getGameTime();
+        if (outcome.equals(betterinventory$lastOutcome) && now - betterinventory$lastLogTick < 40L) {
+            return;
+        }
+        betterinventory$lastOutcome = outcome;
+        betterinventory$lastLogTick = now;
+        logger.info("[BI backpack layer] id={} tick={} {}", state.id, now, outcome);
+    }
 
     public BackpackLayer(RenderLayerParent<AvatarRenderState, PlayerModel> parent) {
         super(parent);
@@ -40,7 +56,11 @@ public final class BackpackLayer extends RenderLayer<AvatarRenderState, PlayerMo
     @Override
     public void submit(PoseStack pose, SubmitNodeCollector collector, int packedLight,
                        AvatarRenderState state, float yRot, float xRot) {
-        if (state.isInvisible || state.isSpectator || !BetterInventoryConfig.SHOW_WORN_BACKPACK.get()) {
+        if (state.isInvisible || state.isSpectator) {
+            return;
+        }
+        if (!BetterInventoryConfig.SHOW_WORN_BACKPACK.get()) {
+            diagnose(BACKPACK_LAYER_LOGGER, state, "disabled by config");
             return;
         }
         Minecraft minecraft = Minecraft.getInstance();
@@ -49,15 +69,21 @@ public final class BackpackLayer extends RenderLayer<AvatarRenderState, PlayerMo
         }
         Entity entity = minecraft.level.getEntity(state.id);
         if (!(entity instanceof Player player)) {
+            diagnose(BACKPACK_LAYER_LOGGER, state, "id " + state.id + " -> not a player ("
+                    + (entity == null ? "null" : entity.getClass().getSimpleName()) + ")");
             return;
         }
-        ItemStack pack = PlayerLoadout.of(player).highestBackpack();
+        PlayerLoadout loadout = PlayerLoadout.of(player);
+        ItemStack pack = loadout.highestBackpack();
         if (pack.isEmpty()) {
+            diagnose(BACKPACK_LAYER_LOGGER, state, "no backpack equipped for " + player.getScoreboardName()
+                    + " (backpack slots hold " + loadout.backpacks.getSlots() + " slots)");
             return;
         }
         ItemStackRenderState rendered = new ItemStackRenderState();
         minecraft.getItemModelResolver().updateForLiving(rendered, pack, ItemDisplayContext.NONE, player);
         if (rendered.isEmpty()) {
+            diagnose(BACKPACK_LAYER_LOGGER, state, "item " + pack.getItem() + " resolved to an empty render state");
             return;
         }
         float[] bounds = measure(rendered);
@@ -78,6 +104,8 @@ public final class BackpackLayer extends RenderLayer<AvatarRenderState, PlayerMo
         pose.rotateDegrees(Axis.YP, 180.0F);
         rendered.submit(pose, collector, packedLight, OverlayTexture.NO_OVERLAY, state.id);
         pose.popPose();
+        diagnose(BACKPACK_LAYER_LOGGER, state, "drawn " + pack.getItem() + " at " + x + "," + y + "," + z
+                + " bounds=" + bounds[0] + "," + bounds[1] + "," + bounds[2] + ".." + bounds[3] + "," + bounds[4] + "," + bounds[5]);
     }
 
     /**
