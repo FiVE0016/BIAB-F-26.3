@@ -1,75 +1,109 @@
 package dev.fallingcloud.betterinventory.client.screen;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-
 import dev.fallingcloud.betterinventory.BetterInventory;
 import dev.fallingcloud.betterinventory.BetterInventoryConfig;
 import dev.fallingcloud.betterinventory.BetterInventoryLayout;
+import dev.fallingcloud.betterinventory.client.ClientTheme;
+import dev.fallingcloud.betterinventory.client.CompatButtons;
+import dev.fallingcloud.betterinventory.client.CreativeInventory;
+import dev.fallingcloud.betterinventory.client.EffectRow;
+import dev.fallingcloud.betterinventory.client.FtbSidebarCompat;
+import dev.fallingcloud.betterinventory.client.InventorySwap;
+import dev.fallingcloud.betterinventory.client.RecipeViewers;
+import dev.fallingcloud.betterinventory.client.ZoomRender;
+import dev.fallingcloud.betterinventory.compat.SlateBuildingCompat;
 import dev.fallingcloud.betterinventory.data.TabSettings;
 import dev.fallingcloud.betterinventory.inv.BetterInventorySettings;
-import dev.fallingcloud.betterinventory.inv.PlayerLoadout;
-import dev.fallingcloud.betterinventory.item.BackpackItem;
+import dev.fallingcloud.betterinventory.inv.FurnaceState;
 import dev.fallingcloud.betterinventory.menu.BetterInventoryMenu;
-import dev.fallingcloud.betterinventory.menu.TabStorage;
 import dev.fallingcloud.betterinventory.net.BetterInventoryPayloads;
+import dev.fallingcloud.betterinventory.net.Net;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import dev.fallingcloud.betterinventory.shim.PacketDistributor;
+import net.minecraft.world.item.Items;
+import org.jetbrains.annotations.Nullable;
 
+/**
+ * 1.4.1 overhauled inventory screen: 72-slot tabbed storage, armor grid plus
+ * armor store, offhand carousel, tool rack, backpack/pack-upgrade slots,
+ * crafting or furnace panel, trash, toolbox, effect row, compat buttons, the
+ * vanilla swap button and the zoom magnifier.
+ *
+ * <p>26.3 adaptations: extractBackground/extractRenderState/containerTick
+ * replace drawBackground/render/handledScreenTick, {@code isHovering} replaces
+ * isPointWithinBounds, right-click is SDL button code 3, the player preview is
+ * {@code InventoryScreen.extractEntityInInventoryFollowsMouse}, GUI sprites
+ * (furnace flame) use {@code blitSprite}, borders are four fills, and the
+ * per-draw shader colour of the 1.4.1 furnace flame is dropped (26.3 has no
+ * immediate colour API on the GUI extractor). The zoom panel width is chosen
+ * in the constructor because 26.3's image size is final.
+ */
 public class BetterInventoryScreen extends AbstractContainerScreen<BetterInventoryMenu> {
-
     private static final Identifier TEXTURE = BetterInventory.id("textures/gui/inventory.png");
-    /** ~45% black: dims a slot without hiding what is in it. */
-    private static final int DIM_COLOR = 0x73101014;
+    private static final int LOCKED_MARK = -1644822;
+    private static final int LOCKED_MARK_SHADOW = -1072952304;
+    private static final int BOARD_COLOR = -15263973;
+    private static final int BOARD_EDGE = -14013903;
+    private static final int GLYPH_COLOR = -13421773;
+    private static final int LOCK_BODY = -10724250;
+    private static final int LOCK_HI = -8158321;
+    private static final int LOCK_HOLE = -14277076;
+    private static final int BAR_EDGE = -15065821;
+    private static final int BAR_FACE = -9537914;
+    private static final int BAR_FACE_HOVER = -7432280;
+    private static final int BAR_LIGHT = -6642764;
+    private static final int BAR_LIGHT_HOVER = -4800562;
+    private static final int BAR_GLYPH = -854535;
+    private static final int TRASH_ARMED = -4179669;
+    private final boolean showZoomPanel;
+    private static final Identifier FURNACE_FLAME = Identifier.withDefaultNamespace("container/furnace/lit_progress");
+    private static final ItemStack FURNACE_ICON = new ItemStack(Items.FURNACE);
 
     public BetterInventoryScreen(BetterInventoryMenu menu, Inventory inventory, Component title) {
-        super(menu, inventory, title, BetterInventoryLayout.imageWidth(menu.curiosPresent()), BetterInventoryLayout.IMAGE_H);
-                
+        super(menu, inventory, title,
+                BetterInventoryConfig.ZOOM_ENABLED.get()
+                        && BetterInventoryLayout.zoomFits(Minecraft.getInstance().getWindow().getGuiScaledWidth(), RecipeViewers.installed())
+                        ? BetterInventoryLayout.IMAGE_W_ZOOM
+                        : BetterInventoryLayout.IMAGE_W,
+                BetterInventoryLayout.IMAGE_H);
+        this.showZoomPanel = imageWidth == BetterInventoryLayout.IMAGE_W_ZOOM;
     }
 
     private void panel(GuiGraphicsExtractor graphics, int[] sprite, int x, int y) {
-        graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos + x, topPos + y, sprite[0], sprite[1], sprite[2], sprite[3],
-                BetterInventoryLayout.TEX_W, BetterInventoryLayout.TEX_H);
+        int dx = sprite.length > 4 ? sprite[4] : 0;
+        int dy = sprite.length > 5 ? sprite[5] : 0;
+        graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos + x + dx, topPos + y + dy,
+                sprite[0], sprite[1], sprite[2], sprite[3], BetterInventoryLayout.TEX_W, BetterInventoryLayout.TEX_H);
     }
-
-    /** Set in init(): whether there is room on screen for the side panels. */
-    private boolean showZoomPanel;
-    private boolean showCharPanel;
 
     @Override
     protected void init() {
         super.init();
-        // Labels are drawn by the panels themselves.
         this.titleLabelX = -10000;
         this.titleLabelY = -10000;
         this.inventoryLabelX = -10000;
         this.inventoryLabelY = -10000;
-
-        // The zoom circle and character panel float outside imageWidth, so centring
-        // only the grid pushes them off-screen on narrow windows / large GUI scales.
-        // Centre the whole composition instead, and drop the side panels entirely
-        // when even that will not fit.
-        int leftExtra = BetterInventoryLayout.ZOOM_SIZE + BetterInventoryLayout.ZOOM_GAP;
-        int rightExtra = BetterInventoryLayout.CHAR_GAP + BetterInventoryLayout.CHAR_W;
-        int total = leftExtra + imageWidth + rightExtra;
-        if (total + 4 <= width) {
-            leftPos = (width - total) / 2 + leftExtra;
-            showZoomPanel = true;
-            showCharPanel = true;
-        } else {
-            leftPos = (width - imageWidth) / 2;
-            showZoomPanel = leftPos - leftExtra >= 2;
-            showCharPanel = leftPos + imageWidth + rightExtra <= width - 2;
+        this.leftPos = BetterInventoryLayout.leftPos(width);
+        AbstractWidget ftbButtons = FtbSidebarCompat.createIfMissing(children());
+        if (ftbButtons != null) {
+            addRenderableWidget(ftbButtons);
         }
     }
 
@@ -77,153 +111,189 @@ public class BetterInventoryScreen extends AbstractContainerScreen<BetterInvento
     public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         int x = leftPos;
         int y = topPos;
-        boolean curios = menu.curiosPresent();
-
-        // Blending stays on for the whole background pass: the panel sprites have
-        // transparent corner pixels and the dim overlays are translucent.
-
-        // Background is assembled from panel sprites so the curio column can be
-        // left out completely when Curios is not installed.
-        panel(graphics, BetterInventoryLayout.PANEL_2X2, BetterInventoryLayout.LEFT_X, BetterInventoryLayout.TOP_Y);
-        panel(graphics, BetterInventoryLayout.PANEL_2X3, BetterInventoryLayout.LEFT_X, BetterInventoryLayout.MAIN_Y);
-        panel(graphics, BetterInventoryLayout.PANEL_9X2, BetterInventoryLayout.CENTER_X, BetterInventoryLayout.TOP_Y);
-        panel(graphics, BetterInventoryLayout.PANEL_9X3, BetterInventoryLayout.CENTER_X, BetterInventoryLayout.MAIN_Y);
-        panel(graphics, BetterInventoryLayout.PANEL_9X1, BetterInventoryLayout.CENTER_X, BetterInventoryLayout.HOTBAR_Y);
-        panel(graphics, BetterInventoryLayout.PANEL_2X2, BetterInventoryLayout.RIGHT_A_X, BetterInventoryLayout.TOP_Y);
-        panel(graphics, BetterInventoryLayout.PANEL_2X3, BetterInventoryLayout.RIGHT_A_X, BetterInventoryLayout.MAIN_Y);
-        if (curios) {
-            panel(graphics, BetterInventoryLayout.PANEL_2X2, BetterInventoryLayout.RIGHT_B_X, BetterInventoryLayout.TOP_Y);
-            panel(graphics, BetterInventoryLayout.PANEL_2X3, BetterInventoryLayout.RIGHT_B_X, BetterInventoryLayout.MAIN_Y);
+        panel(graphics, BetterInventoryLayout.PANEL_2X2, 82, 20);
+        panel(graphics, BetterInventoryLayout.PANEL_2X2, 82, 74);
+        panel(graphics, BetterInventoryLayout.PANEL_2X3, 82, 125);
+        panel(graphics, BetterInventoryLayout.CENTER_STRIP, 132, 20);
+        panel(graphics, BetterInventoryLayout.PANEL_2X2, 308, 20);
+        panel(graphics, BetterInventoryLayout.PANEL_2X2, 308, 74);
+        panel(graphics, BetterInventoryLayout.PANEL_2X3, 308, 125);
+        panel(graphics, BetterInventoryLayout.PANEL_1X1, 317, 192);
+        if (menu.trashLoaded()) {
+            border(graphics, x + 317 + 3, y + 192 + 3, 18, 18, TRASH_ARMED);
+        }
+        if (SlateBuildingCompat.loaded()) {
+            panel(graphics, BetterInventoryLayout.PANEL_1X1, 91, 192);
         }
 
-        // Tabs: the default inventory first, then the four backpacks. Exactly one is
-        // always selected - there is no unselected state.
-        for (int tab = 0; tab < PlayerLoadout.TAB_COUNT; tab++) {
-            int tx = x + BetterInventoryLayout.TAB_X0 + tab * BetterInventoryLayout.TAB_SPACING;
+        for (int tab = 0; tab < 5; tab++) {
+            int tx = x + 134 + tab * 24;
             boolean available = menu.loadout.tabAvailable(tab);
             boolean selected = menu.activeTab() == tab;
             int state = available ? (selected ? 1 : 0) : 2;
-            graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, tx, y, BetterInventoryLayout.SPR_TAB_X,
-                    BetterInventoryLayout.SPR_TAB_Y + state * (BetterInventoryLayout.TAB_H + 1),
-                    BetterInventoryLayout.TAB_W, BetterInventoryLayout.TAB_H,
+            graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, tx, y, 220.0F, 0 + state * 21, 24, 20,
                     BetterInventoryLayout.TEX_W, BetterInventoryLayout.TEX_H);
-            if (tab == 0) {
-                graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, tx + 4, y + 2,
-                        BetterInventoryLayout.SPR_TAB_ICON_X, BetterInventoryLayout.SPR_TAB_ICON_Y, 16, 16,
-                        BetterInventoryLayout.TEX_W, BetterInventoryLayout.TEX_H);
+            if (available) {
+                String label = String.valueOf(tab);
+                graphics.text(font, label, tx + (24 - font.width(label)) / 2, y + 7, GLYPH_COLOR, false);
             } else {
-                ItemStack pack = menu.loadout.backpack(tab);
-                if (!pack.isEmpty()) {
-                    graphics.item(pack, tx + 4, y + 2);
-                }
+                graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, tx + 4, y + 3, 220.0F, 168.0F, 16, 16,
+                        BetterInventoryLayout.TEX_W, BetterInventoryLayout.TEX_H);
             }
         }
 
-        // Crafting tab - a panel toggle rather than an inventory tab, so it uses the
-        // selected/unselected states but never the disabled one.
-        int craftX = x + BetterInventoryLayout.CRAFT_TAB_X;
-        graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, craftX, y, BetterInventoryLayout.SPR_TAB_X,
-                BetterInventoryLayout.SPR_TAB_Y + (menu.craftingOpen() ? 1 : 0) * (BetterInventoryLayout.TAB_H + 1),
-                BetterInventoryLayout.TAB_W, BetterInventoryLayout.TAB_H,
+        int craftX = x + 254;
+        graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, craftX, y, 220.0F,
+                0 + (!menu.craftingOpen() && !menu.furnaceOpen() ? 0 : 1) * 21, 24, 20,
                 BetterInventoryLayout.TEX_W, BetterInventoryLayout.TEX_H);
-        graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, craftX + 4, y + 2,
-                BetterInventoryLayout.SPR_CRAFT_ICON_X, BetterInventoryLayout.SPR_CRAFT_ICON_Y, 16, 16,
-                BetterInventoryLayout.TEX_W, BetterInventoryLayout.TEX_H);
-
-        boolean settingsHover = isHovering(BetterInventoryLayout.SETTINGS_X, BetterInventoryLayout.SETTINGS_Y,
-                BetterInventoryLayout.SETTINGS_SIZE, BetterInventoryLayout.SETTINGS_SIZE, mouseX, mouseY);
-        graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x + BetterInventoryLayout.SETTINGS_X, y + BetterInventoryLayout.SETTINGS_Y,
-                BetterInventoryLayout.SPR_SETTINGS_X,
-                BetterInventoryLayout.SPR_SETTINGS_Y + (settingsHover ? BetterInventoryLayout.SETTINGS_SIZE + 1 : 0),
-                BetterInventoryLayout.SETTINGS_SIZE, BetterInventoryLayout.SETTINGS_SIZE,
-                BetterInventoryLayout.TEX_W, BetterInventoryLayout.TEX_H);
-
-        // Dim (not blank out) the gather hub while no backpack is equipped.
-        if (!menu.gatherAccessible()) {
-            drawRegionOverlay(graphics, x + BetterInventoryLayout.CENTER_X + BetterInventoryLayout.PAD,
-                    y + BetterInventoryLayout.TOP_Y + BetterInventoryLayout.PAD, 9, 2);
-        }
-        if (curios) {
-            greyCurios(graphics, x, y);
-        }
-
-        // Character panel
-        if (!showCharPanel) {
-            return;
-        }
-        int charX = BetterInventoryLayout.charX(curios);
-        int panelY = y + BetterInventoryLayout.CHAR_Y;
-
-        // The crafting tab replaces the character view in the same footprint.
-        if (menu.craftingOpen()) {
-            graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x + charX, panelY,
-                    BetterInventoryLayout.SPR_CRAFT_X, BetterInventoryLayout.SPR_CRAFT_Y,
-                    BetterInventoryLayout.CHAR_W, BetterInventoryLayout.CHAR_H,
+        if (menu.furnaceOpen()) {
+            graphics.item(FURNACE_ICON, craftX + 4, y + 3);
+        } else {
+            graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, craftX + 4, y + 3, 220.0F, 150.0F, 16, 16,
                     BetterInventoryLayout.TEX_W, BetterInventoryLayout.TEX_H);
-            // Dim every cell outside the installed upgrade's extent, so the panel
-            // shows at a glance what the next upgrade unlocks.
+        }
+
+        if (CreativeInventory.active(minecraft)) {
+            int itemsX = x + 91;
+            graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, itemsX, y, 220.0F, 0.0F, 24, 20,
+                    BetterInventoryLayout.TEX_W, BetterInventoryLayout.TEX_H);
+            graphics.item(CreativeInventory.itemsIcon(), itemsX + 4, y + 3);
+        }
+
+        boolean settingsHover = isHovering(280, 0, 20, 20, mouseX, mouseY);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x + 280, y + 0, 220.0F, 66 + (settingsHover ? 21 : 0), 20, 20,
+                BetterInventoryLayout.TEX_W, BetterInventoryLayout.TEX_H);
+        if (!menu.gatherAccessible()) {
+            int bx = x + 132 + 3;
+            int by = y + 20 + 3;
+            int bh = 90;
+            graphics.fill(bx, by, bx + 162, by + bh, BOARD_COLOR);
+            border(graphics, bx, by, 162, bh, BOARD_EDGE);
+            renderLockIcon(graphics, bx + 81 - 5, by + bh / 2 - 6);
+        }
+        if (!menu.loadout.upgradesUnlocked()) {
+            int ux = x + 308 + 3 + 18;
+            int uy = y + 125 + 3;
+            graphics.fill(ux, uy, ux + 18, uy + 54, BOARD_COLOR);
+            border(graphics, ux, uy, 18, 54, BOARD_EDGE);
+            renderLockIcon(graphics, ux + 4, uy + 27 - 6);
+        }
+
+        renderArmorSwapBar(graphics, mouseX, mouseY);
+        CompatButtons.render(graphics, x + 82, y + 20, mouseX, mouseY);
+        EffectRow.render(graphics, font, x, y);
+        int panelX = x + 0;
+        int panelY = y + 37;
+        if (!menu.craftingOpen()) {
+            if (menu.furnaceOpen()) {
+                graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, panelX, panelY, 256.0F, 116.0F, 78, 130,
+                        BetterInventoryLayout.TEX_W, BetterInventoryLayout.TEX_H);
+                renderFurnace(graphics, panelX, panelY);
+            } else {
+                graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, panelX, panelY, 352.0F, 0.0F, 78, 130,
+                        BetterInventoryLayout.TEX_W, BetterInventoryLayout.TEX_H);
+                InventoryScreen.extractEntityInInventoryFollowsMouse(
+                        graphics, panelX + 3 + 1, panelY + 3 + 1, panelX + 78 - 3 - 1, panelY + 130 - 3 - 1,
+                        46, 0.0625F, mouseX, mouseY, minecraft.player);
+            }
+        } else {
+            graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, panelX, panelY, 432.0F, 0.0F, 78, 130,
+                    BetterInventoryLayout.TEX_W, BetterInventoryLayout.TEX_H);
             int cols = menu.loadout.craftingCols();
             int rows = menu.loadout.craftingRows();
-            for (int row = 0; row < BetterInventoryLayout.CRAFT_ROWS; row++) {
-                for (int col = 0; col < BetterInventoryLayout.CRAFT_COLS; col++) {
-                    if (col < cols && row < rows) {
-                        continue;
+            for (int row = 0; row < 3; row++) {
+                for (int col = 0; col < 3; col++) {
+                    if (col >= cols || row >= rows) {
+                        lockCraftCell(graphics, panelX + 12 + col * 18 - 1, panelY + 12 + row * 18 - 1);
                     }
-                    dimCell(graphics,
-                            x + charX + BetterInventoryLayout.CRAFT_GRID_X + col * 18 - 1,
-                            panelY + BetterInventoryLayout.CRAFT_GRID_Y + row * 18 - 1);
                 }
             }
-            return;
         }
-
-        graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x + charX, panelY,
-                BetterInventoryLayout.SPR_CHAR_X, BetterInventoryLayout.SPR_CHAR_Y,
-                BetterInventoryLayout.CHAR_W, BetterInventoryLayout.CHAR_H,
-                BetterInventoryLayout.TEX_W, BetterInventoryLayout.TEX_H);
-        InventoryScreen.extractEntityInInventoryFollowsMouse(graphics,
-                x + charX + BetterInventoryLayout.PAD + 1, panelY + BetterInventoryLayout.PAD + 1,
-                x + charX + BetterInventoryLayout.CHAR_W - BetterInventoryLayout.PAD - 1,
-                panelY + BetterInventoryLayout.CHAR_H - BetterInventoryLayout.PAD - 1,
-                46, 0.0625f, mouseX, mouseY, minecraft.player);
     }
 
-    /**
-     * Translucent dim pass over a slot that is present but unavailable — the slot
-     * underneath stays readable.
-     *
-     * <p>Uses fill(), not a blit of a translucent sprite: GuiGraphicsExtractor#blit does not
-     * enable blending, so an alpha sprite paints 100% opaque (that is what turned
-     * these regions solid black). fill() goes through RenderType.gui(), which
-     * carries its own transparency state and always blends correctly.
-     */
+    private void renderFurnace(GuiGraphicsExtractor graphics, int panelX, int panelY) {
+        FurnaceState furnace = menu.loadout.furnace;
+        int flameX = panelX + 31;
+        int flameY = panelY + 31;
+        graphics.blitSprite(RenderPipelines.GUI_TEXTURED, FURNACE_FLAME, flameX, flameY, 14, 14);
+        if (furnace.lit > 0 && furnace.litDuration > 0) {
+            int lit = Mth.clamp((int) Math.ceil(13.0F * furnace.lit / furnace.litDuration) + 1, 1, 14);
+            graphics.blitSprite(RenderPipelines.GUI_TEXTURED, FURNACE_FLAME, flameX, flameY + 14 - lit, 14, lit, 0, 14 - lit, 14, lit);
+        }
+        if (furnace.cook > 0 && furnace.cookTotal > 0) {
+            int cooked = Mth.clamp((int) Math.ceil(18.0F * furnace.cook / furnace.cookTotal), 0, 18);
+            graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, panelX + 31, panelY + 66, 336.0F, 116.0F, 16, cooked,
+                    BetterInventoryLayout.TEX_W, BetterInventoryLayout.TEX_H);
+        }
+    }
+
+    private boolean creativeTabHovered(double mouseX, double mouseY) {
+        return CreativeInventory.active(minecraft) && isHovering(91, 0, 24, 20, mouseX, mouseY);
+    }
+
+    @Override
+    public void containerTick() {
+        super.containerTick();
+        CreativeInventory.tick(menu);
+    }
+
+    private boolean armorSwapHovered(double mouseX, double mouseY) {
+        return isHovering(308, 63, 42, 10, mouseX, mouseY);
+    }
+
+    private void renderArmorSwapBar(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        int bx = leftPos + 308;
+        int by = topPos + 63;
+        int w = 42;
+        int h = 10;
+        boolean hovered = armorSwapHovered(mouseX, mouseY);
+        graphics.fill(bx + 1, by, bx + w - 1, by + h, BAR_EDGE);
+        graphics.fill(bx, by + 1, bx + w, by + h - 1, BAR_EDGE);
+        graphics.fill(bx + 2, by + 2, bx + w - 2, by + h - 2, hovered ? BAR_FACE_HOVER : BAR_FACE);
+        graphics.fill(bx + 2, by + 2, bx + w - 2, by + 3, hovered ? BAR_LIGHT_HOVER : BAR_LIGHT);
+        int top = by + 2;
+        int up = bx + w / 2 - 4;
+        int down = bx + w / 2 + 3;
+        graphics.fill(up, top, up + 1, top + 1, BAR_GLYPH);
+        graphics.fill(up - 1, top + 1, up + 2, top + 2, BAR_GLYPH);
+        graphics.fill(up, top + 2, up + 1, top + 5, BAR_GLYPH);
+        graphics.fill(down, top, down + 1, top + 3, BAR_GLYPH);
+        graphics.fill(down - 1, top + 3, down + 2, top + 4, BAR_GLYPH);
+        graphics.fill(down, top + 4, down + 1, top + 5, BAR_GLYPH);
+    }
+
+    private void renderLockIcon(GuiGraphicsExtractor graphics, int ix, int iy) {
+        graphics.fill(ix + 3, iy, ix + 7, iy + 1, LOCK_HI);
+        graphics.fill(ix + 2, iy + 1, ix + 4, iy + 5, LOCK_HI);
+        graphics.fill(ix + 6, iy + 1, ix + 8, iy + 5, LOCK_HI);
+        graphics.fill(ix + 1, iy + 5, ix + 9, iy + 12, LOCK_BODY);
+        graphics.fill(ix, iy + 6, ix + 10, iy + 11, LOCK_BODY);
+        graphics.fill(ix + 1, iy + 5, ix + 9, iy + 6, LOCK_HI);
+        graphics.fill(ix + 4, iy + 7, ix + 6, iy + 9, LOCK_HOLE);
+        graphics.fill(ix + 4, iy + 9, ix + 6, iy + 11, LOCK_HOLE);
+    }
+
     private void dimCell(GuiGraphicsExtractor graphics, int x, int y) {
-        graphics.fill(x, y, x + 18, y + 18, DIM_COLOR);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x, y, 220.0F, 112.0F, 18, 18,
+                BetterInventoryLayout.TEX_W, BetterInventoryLayout.TEX_H);
     }
 
-    /** Dims curio cells past the count Curios actually exposes. */
-    private void greyCurios(GuiGraphicsExtractor graphics, int x, int y) {
-        int available = menu.curioCount();
-        for (int i = available; i < 10; i++) {
-            int cx;
-            int cy;
-            if (i < 4) {
-                cx = x + BetterInventoryLayout.RIGHT_B_X + BetterInventoryLayout.PAD + (i % 2) * 18;
-                cy = y + BetterInventoryLayout.TOP_Y + BetterInventoryLayout.PAD + (i / 2) * 18;
-            } else {
-                int j = i - 4;
-                cx = x + BetterInventoryLayout.RIGHT_B_X + BetterInventoryLayout.PAD + (j % 2) * 18;
-                cy = y + BetterInventoryLayout.MAIN_Y + BetterInventoryLayout.PAD + (j / 2) * 18;
-            }
-            dimCell(graphics, cx, cy);
+    private void lockCraftCell(GuiGraphicsExtractor graphics, int x, int y) {
+        if (!BetterInventoryConfig.STRONG_LOCKED_SLOTS.get()) {
+            dimCell(graphics, x, y);
+        } else {
+            cross(graphics, x - 1, y, LOCKED_MARK_SHADOW);
+            cross(graphics, x + 1, y, LOCKED_MARK_SHADOW);
+            cross(graphics, x, y - 1, LOCKED_MARK_SHADOW);
+            cross(graphics, x, y + 1, LOCKED_MARK_SHADOW);
+            cross(graphics, x, y, LOCKED_MARK);
         }
     }
 
-    private void drawRegionOverlay(GuiGraphicsExtractor graphics, int x, int y, int cols, int rows) {
-        for (int r = 0; r < rows; r++) {
-            for (int c = 0; c < cols; c++) {
-                dimCell(graphics, x + c * 18, y + r * 18);
-            }
+    private void cross(GuiGraphicsExtractor graphics, int x, int y, int color) {
+        for (int i = 0; i < 12; i++) {
+            graphics.fill(x + 3 + i, y + 3 + i, x + 4 + i, y + 4 + i, color);
+            graphics.fill(x + 14 - i, y + 3 + i, x + 15 - i, y + 4 + i, color);
         }
     }
 
@@ -231,9 +301,42 @@ public class BetterInventoryScreen extends AbstractContainerScreen<BetterInvento
     public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         super.extractRenderState(graphics, mouseX, mouseY, partialTick);
         renderGhostLocks(graphics);
+        renderSwapButton(graphics, mouseX, mouseY);
         renderZoom(graphics);
         renderTabTooltips(graphics, mouseX, mouseY);
+        renderControlTooltips(graphics, mouseX, mouseY);
+        if (menu.getCarried().isEmpty()) {
+            EffectRow.renderTooltip(graphics, font, leftPos, topPos, mouseX, mouseY);
+        }
         extractTooltip(graphics, mouseX, mouseY);
+    }
+
+    private void renderZoom(GuiGraphicsExtractor graphics) {
+        if (showZoomPanel) {
+            ItemStack stack = hoveredSlot != null && hoveredSlot.hasItem() ? hoveredSlot.getItem() : ItemStack.EMPTY;
+            ZoomRender.draw(graphics, leftPos + 366 + 50, topPos + 58 + 50, stack);
+        }
+    }
+
+    @Nullable
+    public int[] zoomArea() {
+        return showZoomPanel
+                ? new int[]{leftPos + 366, topPos + 58, 100, 100}
+                : null;
+    }
+
+    public int[] playerViewArea() {
+        return new int[]{leftPos + 0, topPos + 37, 78, 130};
+    }
+
+    private void renderSwapButton(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        int bx = InventorySwap.buttonX(this);
+        int by = InventorySwap.buttonY(this);
+        boolean hovered = InventorySwap.hovering(bx, by, mouseX, mouseY);
+        InventorySwap.render(graphics, bx, by, hovered);
+        if (hovered) {
+            graphics.setTooltipForNextFrame(font, InventorySwap.label(true), mouseX, mouseY);
+        }
     }
 
     private void renderGhostLocks(GuiGraphicsExtractor graphics) {
@@ -241,117 +344,141 @@ public class BetterInventoryScreen extends AbstractContainerScreen<BetterInvento
         if (settings.locks().isEmpty()) {
             return;
         }
+        int wash = ClientTheme.ghostWash();
         for (TabSettings.LockEntry lock : settings.locks()) {
             int viewIndex = lock.slot();
             Slot slot = slotForView(viewIndex);
-            if (slot == null || slot.hasItem() || !slot.isActive()) {
-                continue;
+            if (slot != null && !slot.hasItem() && slot.isActive()) {
+                Item item = BuiltInRegistries.ITEM.getValue(lock.item());
+                ItemStack ghost = new ItemStack(item);
+                if (!ghost.isEmpty()) {
+                    int gx = leftPos + slot.x;
+                    int gy = topPos + slot.y;
+                    graphics.fakeItem(ghost, gx, gy);
+                    graphics.pose().pushMatrix();
+                    graphics.pose().translate(0, 0);
+                    graphics.fill(gx, gy, gx + 16, gy + 16, wash);
+                    graphics.pose().popMatrix();
+                }
             }
-            Item item = BuiltInRegistries.ITEM.getValue(lock.item());
-            ItemStack ghost = new ItemStack(item);
-            if (ghost.isEmpty()) {
-                continue;
-            }
-            int gx = leftPos + slot.x;
-            int gy = topPos + slot.y;
-            graphics.fakeItem(ghost, gx, gy);
-            graphics.pose().pushMatrix();
-            graphics.pose().translate(0, 0);
-            graphics.fill(gx, gy, gx + 16, gy + 16, 0x9E8B8B8B);
-            graphics.pose().popMatrix();
         }
     }
 
     private Slot slotForView(int viewIndex) {
-        if (viewIndex < 0 || viewIndex >= TabStorage.SIZE) {
-            return null;
+        if (viewIndex >= 0 && viewIndex < 72) {
+            int slotIndex = viewIndex < 27 ? 9 + viewIndex : 36 + (viewIndex - 27);
+            return menu.slots.get(slotIndex);
         }
-        int slotIndex = viewIndex < TabStorage.GATHER_START
-                ? BetterInventoryMenu.SLOT_MAIN + viewIndex
-                : BetterInventoryMenu.SLOT_GATHER + (viewIndex - TabStorage.GATHER_START);
-        return menu.slots.get(slotIndex);
-    }
-
-    private void renderZoom(GuiGraphicsExtractor graphics) {
-        if (!BetterInventoryConfig.ZOOM_ENABLED.get() || !showZoomPanel) {
-            return;
-        }
-        ItemStack stack = hoveredSlot != null && hoveredSlot.hasItem() ? hoveredSlot.getItem() : ItemStack.EMPTY;
-        int cx = leftPos + BetterInventoryLayout.ZOOM_X + BetterInventoryLayout.ZOOM_SIZE / 2;
-        int cy = topPos + BetterInventoryLayout.ZOOM_Y + BetterInventoryLayout.ZOOM_SIZE / 2;
-        dev.fallingcloud.betterinventory.client.ZoomRender.draw(graphics, cx, cy, stack);
+        return null;
     }
 
     private void renderTabTooltips(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
-        for (int tab = 0; tab < PlayerLoadout.TAB_COUNT; tab++) {
-            if (isHovering(BetterInventoryLayout.TAB_X0 + tab * BetterInventoryLayout.TAB_SPACING, 0,
-                    BetterInventoryLayout.TAB_W, BetterInventoryLayout.TAB_H, mouseX, mouseY)) {
+        for (int tab = 0; tab < 5; tab++) {
+            if (isHovering(134 + tab * 24, 0, 24, 20, mouseX, mouseY)) {
                 Component text;
                 if (tab == 0) {
                     text = Component.translatable("screen.betterinventory.tab.inventory");
+                } else if (menu.loadout.tabAvailable(tab)) {
+                    text = Component.translatable("screen.betterinventory.tab.page", tab);
                 } else {
-                    ItemStack pack = menu.loadout.backpack(tab);
-                    text = pack.isEmpty()
-                            ? Component.translatable("screen.betterinventory.tab.empty", tab)
-                            : pack.getHoverName();
+                    text = Component.translatable("screen.betterinventory.tab.locked", tab + 1);
                 }
                 graphics.setTooltipForNextFrame(font, text, mouseX, mouseY);
             }
         }
-        if (isHovering(BetterInventoryLayout.CRAFT_TAB_X, 0,
-                BetterInventoryLayout.TAB_W, BetterInventoryLayout.TAB_H, mouseX, mouseY)) {
-            graphics.setTooltipForNextFrame(font, Component.translatable("screen.betterinventory.tab.crafting",
-                    menu.loadout.craftingCols() + "x" + menu.loadout.craftingRows()), mouseX, mouseY);
+
+        if (isHovering(254, 0, 24, 20, mouseX, mouseY)) {
+            List<Component> lines = new ArrayList<>();
+            lines.add(menu.furnaceOpen()
+                    ? Component.translatable("screen.betterinventory.tab.furnace")
+                    : Component.translatable("screen.betterinventory.tab.crafting",
+                            menu.loadout.craftingCols() + "x" + menu.loadout.craftingRows()));
+            if (menu.loadout.hasFurnace() && !menu.furnaceOpen()) {
+                lines.add(Component.translatable("screen.betterinventory.tab.furnace.hint").withStyle(ChatFormatting.GRAY));
+            }
+            graphics.setComponentTooltipForNextFrame(font, lines, mouseX, mouseY);
         }
-        if (isHovering(BetterInventoryLayout.SETTINGS_X, BetterInventoryLayout.SETTINGS_Y,
-                BetterInventoryLayout.SETTINGS_SIZE, BetterInventoryLayout.SETTINGS_SIZE, mouseX, mouseY)) {
+
+        if (creativeTabHovered(mouseX, mouseY)) {
+            graphics.setTooltipForNextFrame(font, Component.translatable("screen.betterinventory.tab.creative"), mouseX, mouseY);
+        }
+
+        if (isHovering(280, 0, 20, 20, mouseX, mouseY)) {
             graphics.setTooltipForNextFrame(font, Component.translatable("screen.betterinventory.settings"), mouseX, mouseY);
         }
     }
 
-    @Override
-    public boolean mouseClicked(net.minecraft.client.input.MouseButtonEvent event, boolean doubleClick) {
-        return onMouseClick(event, doubleClick);
+    private void renderControlTooltips(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        if (armorSwapHovered(mouseX, mouseY)) {
+            graphics.setTooltipForNextFrame(font, Component.translatable("screen.betterinventory.armor_swap"), mouseX, mouseY);
+        } else if (!menu.trashLoaded() && isHovering(321, 196, 16, 16, mouseX, mouseY)) {
+            graphics.setTooltipForNextFrame(font, Component.translatable("screen.betterinventory.trash"), mouseX, mouseY);
+        } else if (SlateBuildingCompat.loaded()
+                && !menu.slots.get(116).hasItem()
+                && isHovering(95, 196, 16, 16, mouseX, mouseY)) {
+            graphics.setTooltipForNextFrame(font, Component.translatable("screen.betterinventory.toolbox"), mouseX, mouseY);
+        } else {
+            CompatButtons.Entry button = CompatButtons.hovered(leftPos + 82, topPos + 20, mouseX, mouseY);
+            if (button != null) {
+                graphics.setTooltipForNextFrame(font, button.label(), mouseX, mouseY);
+            }
+        }
     }
 
-    /** Body of the old mouseClicked, now driven by the 26.3 event object. */
-    private boolean onMouseClick(net.minecraft.client.input.MouseButtonEvent event, boolean doubleClick) {
-        double mouseX = event.x(), mouseY = event.y();
+    @Override
+    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+        double mouseX = event.x();
+        double mouseY = event.y();
         int button = event.button();
         if (button == 1) {
-            for (int tab = 0; tab < PlayerLoadout.TAB_COUNT; tab++) {
-                if (isHovering(BetterInventoryLayout.TAB_X0 + tab * BetterInventoryLayout.TAB_SPACING, 0,
-                        BetterInventoryLayout.TAB_W, BetterInventoryLayout.TAB_H, mouseX, mouseY)) {
-                    // Clicking the open tab does nothing - a tab is always selected,
-                    // so there is no "deselect" that would leave no inventory shown.
-                    if (!menu.loadout.tabAvailable(tab) || menu.activeTab() == tab) {
+            if (InventorySwap.hovering(InventorySwap.buttonX(this), InventorySwap.buttonY(this), mouseX, mouseY)) {
+                InventorySwap.toVanilla(minecraft);
+                return true;
+            }
+
+            for (int tab = 0; tab < 5; tab++) {
+                if (isHovering(134 + tab * 24, 0, 24, 20, mouseX, mouseY)) {
+                    if (menu.loadout.tabAvailable(tab) && menu.activeTab() != tab) {
+                        Net.sendToServer(new BetterInventoryPayloads.SwitchTab(tab));
                         return true;
                     }
-                    // Do NOT set activeTab locally: switching physically swaps the
-                    // inventory server-side, so the client must wait for that to come
-                    // back or the grid and the tab highlight disagree for a frame.
-                    PacketDistributor.sendToServer(new BetterInventoryPayloads.SwitchTab(tab));
                     return true;
                 }
             }
-            if (isHovering(BetterInventoryLayout.CRAFT_TAB_X, 0,
-                    BetterInventoryLayout.TAB_W, BetterInventoryLayout.TAB_H, mouseX, mouseY)) {
-                PacketDistributor.sendToServer(new BetterInventoryPayloads.ToggleCrafting());
+
+            if (isHovering(254, 0, 24, 20, mouseX, mouseY)) {
+                Net.sendToServer(new BetterInventoryPayloads.ToggleCrafting());
                 return true;
             }
-            if (isHovering(BetterInventoryLayout.SETTINGS_X, BetterInventoryLayout.SETTINGS_Y,
-                    BetterInventoryLayout.SETTINGS_SIZE, BetterInventoryLayout.SETTINGS_SIZE, mouseX, mouseY)) {
-                PacketDistributor.sendToServer(new BetterInventoryPayloads.OpenSettings(menu.activeTab()));
+
+            if (isHovering(280, 0, 20, 20, mouseX, mouseY)) {
+                Net.sendToServer(new BetterInventoryPayloads.OpenSettings(menu.activeTab()));
+                return true;
+            }
+
+            if (creativeTabHovered(mouseX, mouseY)) {
+                CreativeInventory.toItems(minecraft);
+                return true;
+            }
+
+            if (armorSwapHovered(mouseX, mouseY)) {
+                Net.sendToServer(new BetterInventoryPayloads.SwapArmor());
+                return true;
+            }
+
+            if (CompatButtons.click(leftPos + 82, topPos + 20, mouseX, mouseY)) {
                 return true;
             }
         }
-        if (button == 3 && handleLockClick()) {
-            return true;
-        }
-        return super.mouseClicked(event, doubleClick);
+        return button == 3 && handleLockClick() || super.mouseClicked(event, doubleClick);
     }
 
-    /** Middle-click slot locking: cursor item + empty slot locks, empty + empty clears. */
+    @Override
+    protected boolean hasClickedOutside(double mouseX, double mouseY, int guiLeft, int guiTop) {
+        return super.hasClickedOutside(mouseX, mouseY, guiLeft, guiTop)
+                && !EffectRow.covers(guiLeft, guiTop, mouseX, mouseY);
+    }
+
     private boolean handleLockClick() {
         if (!(hoveredSlot instanceof BetterInventoryMenu.StorageSlot slot) || slot.hasItem() || !slot.isActive()) {
             return false;
@@ -364,19 +491,26 @@ public class BetterInventoryScreen extends AbstractContainerScreen<BetterInvento
         if (!carried.isEmpty() && lock.isEmpty()) {
             Identifier id = BuiltInRegistries.ITEM.getKey(carried.getItem());
             applyLockLocal(tab, viewIndex, Optional.of(id));
-            PacketDistributor.sendToServer(new BetterInventoryPayloads.SetLock(tab, viewIndex, Optional.of(id)));
+            Net.sendToServer(new BetterInventoryPayloads.SetLock(tab, viewIndex, Optional.of(id)));
             return true;
         }
         if (carried.isEmpty() && lock.isPresent()) {
             applyLockLocal(tab, viewIndex, Optional.empty());
-            PacketDistributor.sendToServer(new BetterInventoryPayloads.SetLock(tab, viewIndex, Optional.empty()));
+            Net.sendToServer(new BetterInventoryPayloads.SetLock(tab, viewIndex, Optional.empty()));
             return true;
         }
         return false;
     }
 
     private void applyLockLocal(int tab, int viewIndex, Optional<Identifier> item) {
-        TabSettings settings = BetterInventorySettings.raw(minecraft.player, tab);
-        BetterInventorySettings.setRaw(minecraft.player, tab, settings.withLock(viewIndex, item));
+        BetterInventorySettings.setLockAt(minecraft.player, tab, viewIndex, item);
+    }
+
+    /** 26.3 adaptation: drawBorder is gone; a border is four 1px fills. */
+    private static void border(GuiGraphicsExtractor graphics, int x, int y, int w, int h, int color) {
+        graphics.fill(x, y, x + w, y + 1, color);
+        graphics.fill(x, y + h - 1, x + w, y + h, color);
+        graphics.fill(x, y + 1, x + 1, y + h - 1, color);
+        graphics.fill(x + w - 1, y + 1, x + w, y + h - 1, color);
     }
 }

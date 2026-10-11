@@ -117,37 +117,4 @@ public final class BetterInventoryLayout {
         int right = leftPos(screenWidth) + IMAGE_W_ZOOM;
         return right + (recipeViewer ? VIEWER_MIN_W : 2) <= screenWidth;
     }
-
-    // ------------------------------------------------------------------
-    // 1.0.0 兼容别名：F-2 屏幕层移植完成前，旧屏幕/菜单还在引用这些常量。
-    // 移植完成后删除本区块。
-    // ------------------------------------------------------------------
-
-    /** @deprecated 1.4.1 布局用 CENTER_STRIP 与 CHAR_X。 */
-    @Deprecated
-    public static final int RIGHT_B_X = RIGHT_A_X + 42 + GAP_SMALL;
-    /** @deprecated 1.4.1 布局的字符区在左侧。 */
-    @Deprecated
-    public static final int CHAR_GAP = 16;
-    /** @deprecated 1.4.1 用 CENTER_STRIP 单条面板。 */
-    @Deprecated
-    public static final int[] PANEL_9X3 = {0, 0, 168, 60};
-    /** @deprecated 1.4.1 用 CENTER_STRIP 单条面板。 */
-    @Deprecated
-    public static final int[] PANEL_9X2 = {0, 68, 168, 42};
-    /** @deprecated 1.4.1 用 CENTER_STRIP 单条面板。 */
-    @Deprecated
-    public static final int[] PANEL_9X1 = {0, 118, 168, 24};
-
-    /** @deprecated 1.4.1 字符区在左侧（CHAR_X）。 */
-    @Deprecated
-    public static int charX(boolean curios) {
-        return CHAR_X;
-    }
-
-    /** @deprecated 1.4.1 用 IMAGE_W。 */
-    @Deprecated
-    public static int imageWidth(boolean curios) {
-        return IMAGE_W;
-    }
 }

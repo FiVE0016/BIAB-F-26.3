@@ -59,7 +59,8 @@ public final class ClientHooks {
     }
 
     public static boolean onScreenClicked(Screen screen, double mouseX, double mouseY, int button) {
-        if (button == 0 && CreativeInventory.vanillaInventoryShowing(screen)) {
+        // 26.3: MouseButtonEvent.button() uses SDL codes - 1 is the left button.
+        if (button == 1 && CreativeInventory.vanillaInventoryShowing(screen)) {
             int bx = InventorySwap.buttonX(screen);
             int by = InventorySwap.buttonY(screen);
             if (InventorySwap.hovering(bx, by, mouseX, mouseY)) {

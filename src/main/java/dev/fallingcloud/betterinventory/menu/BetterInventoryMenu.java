@@ -435,18 +435,6 @@ public class BetterInventoryMenu extends AbstractContainerMenu {
         return storage.tab() != 0 || loadout.gatherUnlocked();
     }
 
-    /** @deprecated 1.2.x curios leftovers kept only so the not-yet-replaced screen compiles; removed with F-2c. */
-    @Deprecated
-    public boolean curiosPresent() {
-        return false;
-    }
-
-    /** @deprecated 1.2.x curios leftovers kept only so the not-yet-replaced screen compiles; removed with F-2c. */
-    @Deprecated
-    public int curioCount() {
-        return 0;
-    }
-
     public int activeTab() {
         return storage.tab();
     }

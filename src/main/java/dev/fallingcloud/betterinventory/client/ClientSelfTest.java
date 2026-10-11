@@ -143,9 +143,10 @@ public final class ClientSelfTest {
 
     /** 26.3 adaptation: Screen.mouseClicked now takes a MouseButtonEvent plus a
      * handled flag; a left click at (x, y) is synthesized for the scripted
-     * presses that the 1.4.1 selftest performed with the old int overload. */
+     * presses that the 1.4.1 selftest performed with the old int overload.
+     * 26.3 mouse buttons use SDL codes: 1 = left, 3 = right. */
     private static void clickScreen(Screen screen, double x, double y) {
-        screen.mouseClicked(new MouseButtonEvent(x, y, new MouseButtonInfo(0, 0)), false);
+        screen.mouseClicked(new MouseButtonEvent(x, y, new MouseButtonInfo(1, 0)), false);
     }
 
     private static String screenName(Minecraft minecraft) {
