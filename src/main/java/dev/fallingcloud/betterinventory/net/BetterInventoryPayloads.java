@@ -233,15 +233,9 @@ public final class BetterInventoryPayloads {
 
         registrar.playToServer(ToggleCrafting.TYPE, ToggleCrafting.CODEC, (payload, context) -> {
             if (context.player() instanceof ServerPlayer player) {
-                PlayerLoadout loadout = ModAttachments.get(player);
-                loadout.craftingOpen = !loadout.craftingOpen;
-                // Closing hands the grid back rather than leaving items in a panel
-                // the player can no longer see.
-                if (!loadout.craftingOpen
-                        && player.containerMenu instanceof BetterInventoryMenu menu) {
-                    menu.returnCraftingGrid(player);
-                }
-                loadout.dirty = true;
+                // 1.4.1: crafting -> furnace -> hidden -> crafting cycle; closing the
+                // crafting panel hands the grid back.
+                BetterInventoryMenu.cyclePanel(player, ModAttachments.get(player));
             }
         });
 

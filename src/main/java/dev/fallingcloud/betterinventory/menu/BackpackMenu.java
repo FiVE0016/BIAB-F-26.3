@@ -19,6 +19,7 @@ import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
@@ -113,9 +114,24 @@ public class BackpackMenu extends AbstractContainerMenu {
                 y = GATHER_Y + (j / 9) * 18;
             }
             addSlot(new LockedHandlerSlot(view, i, x, y,
-                    () -> BackpackItem.settings(storageHandler.host()),
+                    this::pageSettings,
                     loadout::storageCap,
-                    storageHandler::host));
+                    storageHandler::host) {
+                @Override
+                public boolean isActive() {
+                    return index >= TabStorage.GATHER_START || mainRowsUnlocked();
+                }
+
+                @Override
+                public boolean mayPlace(ItemStack stack) {
+                    return isActive() && super.mayPlace(stack);
+                }
+
+                @Override
+                public boolean mayPickup(Player p) {
+                    return isActive() && super.mayPickup(p);
+                }
+            });
         }
         // 45-71 player inventory
         for (int row = 0; row < 3; row++) {
@@ -138,6 +154,24 @@ public class BackpackMenu extends AbstractContainerMenu {
                 }
             });
         }
+        // 1.4.1: the open page number is a synced data slot so the screen's
+        // pager follows server-side page changes.
+        addDataSlot(new DataSlot() {
+            @Override
+            public int get() {
+                return page;
+            }
+
+            @Override
+            public void set(int value) {
+                page = Math.max(1, Math.min(4, value));
+            }
+        });
+    }
+
+    /** Lock settings sliced to the page on show. */
+    public TabSettings pageSettings() {
+        return BackpackItem.settings(storageHandler.host()).sliceLocks(PlayerLoadout.pageBase(page), TabStorage.SIZE);
     }
     
     /** Level of the backpack on show, 0 when the host is not a backpack. */
@@ -301,7 +335,7 @@ public class BackpackMenu extends AbstractContainerMenu {
 
     /** Feeds the stack into any storage slot reserved for that exact item. */
     private boolean moveToLockedSlots(ItemStack stack, int sourceIndex) {
-        TabSettings settings = BackpackItem.settings(storageHandler.host());
+        TabSettings settings = pageSettings();
         if (stack.isEmpty() || settings.locks().isEmpty()) {
             return false;
         }
@@ -312,6 +346,9 @@ public class BackpackMenu extends AbstractContainerMenu {
                     continue;
                 }
                 Slot slot = slots.get(i);
+                if (!slot.isActive()) {
+                    continue;
+                }
                 if (settings.lockFor(slot.index).filter(stack::is).isEmpty()) {
                     continue;
                 }
@@ -343,10 +380,10 @@ public class BackpackMenu extends AbstractContainerMenu {
             if (index < SLOT_PLAYER) { // storage -> player
                 moved = moveItemStackTo(stack, SLOT_PLAYER, SLOT_END, true);
             } else if (index < SLOT_HOTBAR) { // player inv -> main grid, then gather
-                moved = moveItemStackTo(stack, SLOT_STORAGE, TabStorage.GATHER_START, false)
+                moved = mainRowsUnlocked() && moveItemStackTo(stack, SLOT_STORAGE, TabStorage.GATHER_START, false)
                         || moveItemStackTo(stack, TabStorage.GATHER_START, STORAGE_SIZE, false);
             } else { // hotbar -> main grid only (never the gather hub)
-                moved = moveItemStackTo(stack, SLOT_STORAGE, TabStorage.GATHER_START, false);
+                moved = mainRowsUnlocked() && moveItemStackTo(stack, SLOT_STORAGE, TabStorage.GATHER_START, false);
             }
         }
         if (!moved) {

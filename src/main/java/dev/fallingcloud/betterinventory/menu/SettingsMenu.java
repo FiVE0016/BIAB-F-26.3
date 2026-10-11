@@ -1,13 +1,12 @@
 package dev.fallingcloud.betterinventory.menu;
 
-import dev.fallingcloud.betterinventory.inv.ComponentBackedHandler;
 import dev.fallingcloud.betterinventory.inv.PlayerLoadout;
-import dev.fallingcloud.betterinventory.item.BackpackItem;
 import dev.fallingcloud.betterinventory.item.UpgradeItem;
+import dev.fallingcloud.betterinventory.menu.slots.IconSlots;
 import dev.fallingcloud.betterinventory.registry.ModAttachments;
-import dev.fallingcloud.betterinventory.registry.ModComponents;
 import dev.fallingcloud.betterinventory.registry.ModMenus;
-import dev.fallingcloud.betterinventory.shim.Nullable;
+import dev.fallingcloud.betterinventory.shim.HandlerItemStore;
+import dev.fallingcloud.betterinventory.shim.SlotItemHandler;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -17,23 +16,22 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import dev.fallingcloud.betterinventory.shim.ItemStackHandler;
-import dev.fallingcloud.betterinventory.shim.SlotItemHandler;
 
 /**
- * The per-tab settings screen: toggles (rendered client side, applied via payloads)
- * plus the backpack's ability-upgrade slots.
+ * 1.4.1 settings screen menu: the backpack's three ability-upgrade slots plus
+ * the vanilla player inventory. The on/off toggles are rendered client side
+ * and applied through {@code ToggleSetting}/{@code ToggleUpgrade} payloads.
  */
 public class SettingsMenu extends AbstractContainerMenu {
-    public static final int UPGRADE_SLOTS = 10;
+    public static final int UPGRADE_SLOTS = 3;
     public static final int SLOT_UPGRADES = 0;
-    public static final int SLOT_PLAYER = 10;
-    public static final int SLOT_HOTBAR = 37;
-    public static final int SLOT_END = 46;
+    public static final int SLOT_PLAYER = 3;
+    public static final int SLOT_HOTBAR = 30;
+    public static final int SLOT_END = 39;
 
     public static final int IMAGE_W = 190;
     public static final int IMAGE_H = 264;
-    public static final int UPGRADES_X = 50;
+    public static final int UPGRADES_X = 69;
     public static final int UPGRADES_Y = 107;
     public static final int PLAYER_Y = 182;
     public static final int HOTBAR_Y = 240;
@@ -43,13 +41,11 @@ public class SettingsMenu extends AbstractContainerMenu {
     public static final int DIV_MID = 102;
     public static final int DIV_BOTTOM = 168;
     /** Row of upgrade toggle buttons, just under the bay. */
-    public static final int TOGGLES_Y = UPGRADES_Y + 36 + 4;
+    public static final int TOGGLES_Y = 131;
 
     public final Player player;
     public final PlayerLoadout loadout;
     public final int tab;
-    @Nullable
-    private final ComponentBackedHandler upgrades;
 
     public SettingsMenu(int id, Inventory inventory, int tab) {
         super(ModMenus.SETTINGS, id);
@@ -57,19 +53,8 @@ public class SettingsMenu extends AbstractContainerMenu {
         this.loadout = ModAttachments.get(player);
         this.tab = Math.floorMod(tab, PlayerLoadout.TAB_COUNT);
 
-        ItemStack pack = loadout.backpack(this.tab);
-        if (!pack.isEmpty()) {
-            this.upgrades = new ComponentBackedHandler(pack, ModComponents.BACKPACK_UPGRADES.get(), UPGRADE_SLOTS, () -> 1);
-            this.upgrades.setChangeListener(() -> loadout.dirty = true);
-        } else {
-            this.upgrades = null;
-        }
-
-        ItemStackHandler handler = upgrades != null ? upgrades : new ItemStackHandler(UPGRADE_SLOTS);
         for (int i = 0; i < UPGRADE_SLOTS; i++) {
-            addSlot(new UpgradeSlot(handler, i,
-                    UPGRADES_X + (i % 5) * 18,
-                    UPGRADES_Y + (i / 5) * 18));
+            addSlot(new UpgradeSlot(loadout, i, UPGRADES_X + i * 18, UPGRADES_Y));
         }
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 9; col++) {
@@ -100,65 +85,13 @@ public class SettingsMenu extends AbstractContainerMenu {
         player.openMenu(MenuData.wrap(provider, () -> tab));
     }
 
-    /** How many upgrade slots this tab's backpack level unlocks (0 for the default tab). */
     public int upgradeCapacity() {
-        return BackpackItem.upgradeCapacityOf(loadout.backpack(tab));
-    }
-
-    public boolean hasBackpack() {
-        return upgrades != null;
-    }
-
-    private boolean kindInstalled(UpgradeItem.Kind kind, int exceptSlot) {
-        if (upgrades == null) {
-            return false;
-        }
-        for (int i = 0; i < upgrades.getSlots(); i++) {
-            if (i == exceptSlot) {
-                continue;
-            }
-            if (upgrades.getStackInSlot(i).getItem() instanceof UpgradeItem u && u.kind() == kind) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private class UpgradeSlot extends SlotItemHandler {
-        private final int index;
-
-        UpgradeSlot(ItemStackHandler handler, int index, int x, int y) {
-            super(handler, index, x, y);
-            this.index = index;
-            setBackground(dev.fallingcloud.betterinventory.menu.slots.IconSlots.EMPTY_UPGRADE);
-        }
-
-        @Override
-        public boolean isActive() {
-            return upgrades != null && index < upgradeCapacity();
-        }
-
-        @Override
-        public int getMaxStackSize() {
-            return 1;
-        }
-
-        @Override
-        public boolean mayPlace(ItemStack stack) {
-            return isActive()
-                    && stack.getItem() instanceof UpgradeItem upgrade
-                    && !kindInstalled(upgrade.kind(), index);
-        }
-
-        @Override
-        public boolean mayPickup(Player player) {
-            return isActive() && super.mayPickup(player);
-        }
+        return UPGRADE_SLOTS;
     }
 
     @Override
     public boolean stillValid(Player player) {
-        return tab == 0 || !loadout.backpack(tab).isEmpty();
+        return tab == 0 || loadout.tabAvailable(tab);
     }
 
     @Override
@@ -198,5 +131,35 @@ public class SettingsMenu extends AbstractContainerMenu {
         }
         slot.onTake(player, stack);
         return copy;
+    }
+
+    private static class UpgradeSlot extends SlotItemHandler {
+        private final PlayerLoadout loadout;
+
+        UpgradeSlot(PlayerLoadout loadout, int index, int x, int y) {
+            super(new HandlerItemStore(loadout.packUpgrades), index, x, y);
+            this.loadout = loadout;
+            setBackground(IconSlots.EMPTY_UPGRADE);
+        }
+
+        @Override
+        public boolean isActive() {
+            return loadout.upgradesUnlocked();
+        }
+
+        @Override
+        public int getMaxStackSize() {
+            return 1;
+        }
+
+        @Override
+        public boolean mayPlace(ItemStack stack) {
+            return isActive() && super.mayPlace(stack);
+        }
+
+        @Override
+        public boolean mayPickup(Player player) {
+            return isActive() && super.mayPickup(player);
+        }
     }
 }

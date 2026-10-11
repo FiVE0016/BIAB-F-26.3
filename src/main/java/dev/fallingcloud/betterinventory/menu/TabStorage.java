@@ -1,8 +1,8 @@
 package dev.fallingcloud.betterinventory.menu;
 
+import dev.fallingcloud.betterinventory.inv.BigStackHandler;
 import dev.fallingcloud.betterinventory.inv.ComponentBackedHandler;
 import dev.fallingcloud.betterinventory.inv.PlayerLoadout;
-import dev.fallingcloud.betterinventory.logic.TabService;
 import dev.fallingcloud.betterinventory.registry.ModComponents;
 import org.jetbrains.annotations.Nullable;
 import net.minecraft.world.Container;
@@ -10,23 +10,20 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * The 45-slot view behind the 3x9 + 2x9 areas of the overhauled inventory.
- * Index 0-26 = main grid, 27-44 = gather hub. The default tab routes to the real
- * player inventory + the personal gather hub; backpack tabs route into the
- * backpack's contents component.
+ * 1.4.1 tab storage: the 72-slot view behind the 3x9 + 5x9 areas of the
+ * overhauled inventory. Index 0-26 is the live player main inventory; 27-71
+ * routes to the personal gather hub on the default tab and into the active
+ * backpack tab's contents component otherwise (or straight to the held-pages
+ * handler when the config runs pack-free).
  */
 public class TabStorage implements Container {
     public static final int SIZE = 72;
     public static final int GATHER_START = 27;
-    
-    /** Slots in one backpack page. */
-    public static final int PAGE_SIZE = 72;
-    /** Pages a level-5 backpack holds: 4 x 72 = 288. */
-    public static final int CONTENTS_SIZE = 288;
 
     private final Player player;
     private final PlayerLoadout loadout;
-    private final ComponentBackedHandler[] cache = new ComponentBackedHandler[5];
+    @Nullable
+    private ComponentBackedHandler cache;
 
     public TabStorage(Player player, PlayerLoadout loadout) {
         this.player = player;
@@ -38,20 +35,23 @@ public class TabStorage implements Container {
         return loadout.tabAvailable(tab) ? tab : 0;
     }
 
+    /** The handler behind the active backpack tab, or the held pages pack-free. */
     @Nullable
-    public ComponentBackedHandler packHandler(int tab) {
-        ItemStack pack = loadout.backpack(tab);
+    public BigStackHandler packHandler() {
+        if (loadout.packFree) {
+            cache = null;
+            return loadout.heldPages;
+        }
+        ItemStack pack = loadout.backpack();
         if (pack.isEmpty()) {
-            cache[tab] = null;
+            cache = null;
             return null;
         }
-        ComponentBackedHandler handler = cache[tab];
-        if (handler == null || handler.host() != pack) {
-            handler = new ComponentBackedHandler(pack, ModComponents.BACKPACK_CONTENTS.get(), CONTENTS_SIZE, loadout::storageCap);
-            handler.setChangeListener(() -> loadout.dirty = true);
-            cache[tab] = handler;
+        if (cache == null || cache.host() != pack) {
+            cache = new ComponentBackedHandler(pack, ModComponents.BACKPACK_CONTENTS.get(), PlayerLoadout.CONTENTS_SIZE, loadout::storageCap);
+            cache.setChangeListener(() -> loadout.dirty = true);
         }
-        return handler;
+        return cache;
     }
 
     @Override
@@ -71,16 +71,15 @@ public class TabStorage implements Container {
 
     @Override
     public ItemStack getItem(int slot) {
-        // The main grid IS the live player inventory - TabService swaps a tab's
-        // contents into it on switch, so there is only ever one place to look.
         if (slot < GATHER_START) {
-            return player.getInventory().getNonEquipmentItems().get(TabService.INV_MAIN_START + slot);
+            // The main grid IS the live player inventory.
+            return player.getInventory().getItem(9 + slot);
         }
         int tab = tab();
         if (tab == 0) {
             return loadout.gather.getStackInSlot(slot - GATHER_START);
         }
-        ComponentBackedHandler handler = packHandler(tab);
+        BigStackHandler handler = packHandler();
         return handler == null ? ItemStack.EMPTY : handler.getStackInSlot(PlayerLoadout.pageBase(tab) + slot);
     }
 
@@ -109,7 +108,7 @@ public class TabStorage implements Container {
     @Override
     public void setItem(int slot, ItemStack stack) {
         if (slot < GATHER_START) {
-            player.getInventory().getNonEquipmentItems().set(TabService.INV_MAIN_START + slot, stack);
+            player.getInventory().setItem(9 + slot, stack);
             player.getInventory().setChanged();
             return;
         }
@@ -118,7 +117,7 @@ public class TabStorage implements Container {
             loadout.gather.setStackInSlot(slot - GATHER_START, stack);
             return;
         }
-        ComponentBackedHandler handler = packHandler(tab);
+        BigStackHandler handler = packHandler();
         if (handler != null) {
             handler.setStackInSlot(PlayerLoadout.pageBase(tab) + slot, stack);
         }
@@ -133,12 +132,8 @@ public class TabStorage implements Container {
     public void setChanged() {
         player.getInventory().setChanged();
         loadout.dirty = true;
-        int tab = tab();
-        if (tab != 0) {
-            ComponentBackedHandler handler = packHandler(tab);
-            if (handler != null) {
-                handler.writeBack();
-            }
+        if (tab() != 0 && packHandler() instanceof ComponentBackedHandler backed) {
+            backed.writeBack();
         }
     }
 
@@ -159,7 +154,3 @@ public class TabStorage implements Container {
         return tab() == 0 && index < GATHER_START;
     }
 }
-
-
-
-

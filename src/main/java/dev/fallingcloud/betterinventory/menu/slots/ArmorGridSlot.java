@@ -12,7 +12,7 @@ import net.minecraft.world.item.enchantment.EnchantmentEffectComponents;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 
 /** A vanilla-equivalent armor slot placed in the 2x2 armor grid. */
-public class ArmorGridSlot extends IconedSlot {
+public class ArmorGridSlot extends BackgroundSlot {
     private final Player owner;
     private final EquipmentSlot type;
 

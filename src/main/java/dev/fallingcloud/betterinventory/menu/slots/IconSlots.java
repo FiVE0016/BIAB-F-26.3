@@ -13,8 +13,11 @@ public final class IconSlots {
     public static final Identifier EMPTY_BACKPACK = BetterInventory.id("container/slot/backpack");
     public static final Identifier EMPTY_UPGRADE = BetterInventory.id("container/slot/upgrade");
     public static final Identifier EMPTY_STACK_UPGRADE = BetterInventory.id("container/slot/stack_upgrade");
+    public static final Identifier EMPTY_CRAFTING_UPGRADE = BetterInventory.id("container/slot/crafting_upgrade");
     public static final Identifier EMPTY_OFFHAND = BetterInventory.id("container/slot/offhand");
     public static final Identifier EMPTY_CURIO = BetterInventory.id("container/slot/curio");
+    public static final Identifier EMPTY_TRASH = BetterInventory.id("container/slot/trash");
+    public static final Identifier EMPTY_TOOLBOX = BetterInventory.id("container/slot/toolbox");
 
     public static final Identifier[] TOOL_ICONS = {
             EMPTY_HOE, EMPTY_SHOVEL, EMPTY_PICKAXE, EMPTY_PICKAXE, EMPTY_AXE, EMPTY_SWORD
