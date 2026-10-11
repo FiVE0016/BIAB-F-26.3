@@ -66,16 +66,17 @@ public final class ClientHooks {
      * 1.4.1 的选中光效是原版 18x18 填充；26.3 换成了只覆盖 16x16 凹槽的精灵，
      * 在 1.4.1 的美术下看起来会缩向左上，故我们的屏幕自行绘制。
      *
-     * <p>起点用 {@code (slot.x, slot.y)}：本模组美术里每格是 17x17 凹槽 + 1px
-     * 分隔线，边线起点正好等于槽位坐标（1.21.1 的 {@code x-1} 写法在这里会整体
-     * 偏左上 1px）。
+     * <p>实机三次反馈定标：原版 16x16@(x,y) 观感"偏左上"、18x18@(x-1,y-1) "偏左上
+     * 一点点"、18x18@(x,y) "偏右下"。三组数据同时成立的唯一解是美术凹槽为
+     * <b>17x17</b>（起点=槽位坐标，右/下各带 1px 暗边），故画 17x17@(x,y) 正好盖住
+     * 凹槽、观感居中。
      */
     public static void paintSlotHighlight(GuiGraphicsExtractor graphics, int leftPos, int topPos, Slot slot) {
         if (slot == null || !slot.isHighlightable()) {
             return;
         }
         graphics.fill(leftPos + slot.x, topPos + slot.y,
-                leftPos + slot.x + 18, topPos + slot.y + 18, SLOT_HIGHLIGHT);
+                leftPos + slot.x + 17, topPos + slot.y + 17, SLOT_HIGHLIGHT);
     }
 
     public static boolean onScreenClicked(Screen screen, double mouseX, double mouseY, int button) {
