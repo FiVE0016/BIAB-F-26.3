@@ -9,7 +9,7 @@
   "key": {
     "H": "minecraft:shulker_shell",
     "L": "minecraft:leather",
-    "C": "minecraft:chain",
+    "C": "minecraft:iron_chain",
     "3": "betterinventory:backpack_3"
   },
   "result": {
