@@ -1,6 +1,7 @@
 package dev.fallingcloud.betterinventory.client.screen;
 
 import dev.fallingcloud.betterinventory.BetterInventory;
+import dev.fallingcloud.betterinventory.client.ClientHooks;
 import dev.fallingcloud.betterinventory.data.SettingKey;
 import dev.fallingcloud.betterinventory.data.TabSettings;
 import dev.fallingcloud.betterinventory.inv.BetterInventorySettings;
@@ -205,6 +206,7 @@ public class SettingsScreen extends AbstractContainerScreen<SettingsMenu> {
             int cy = topPos + SettingsMenu.UPGRADES_Y - 1;
             graphics.fill(cx, cy, cx + 54, cy + 18, -15263973);
         }
+        ClientHooks.paintSlotHighlight(graphics, leftPos, topPos, hoveredSlot);
     }
 
     @Override

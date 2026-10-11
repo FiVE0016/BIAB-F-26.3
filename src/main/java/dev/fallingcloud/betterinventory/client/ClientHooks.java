@@ -14,6 +14,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.level.Level;
 
 /**
@@ -26,6 +27,9 @@ import net.minecraft.world.level.Level;
  * {@code minecraft.crosshairPickEntity}.
  */
 public final class ClientHooks {
+    /** 1.21.1 原版悬停高亮色（半透明白）。 */
+    private static final int SLOT_HIGHLIGHT = 0x80FFFFFF;
+
     private ClientHooks() {}
 
     public static boolean onScreenOpening(Screen screen) {
@@ -56,6 +60,19 @@ public final class ClientHooks {
                 graphics.setTooltipForNextFrame(InventorySwap.label(false), mouseX, mouseY);
             }
         }
+    }
+
+    /**
+     * 1.4.1 的选中光效是原版 18x18 填充（slot.x-1 ~ slot.x+17），正好压住槽位外框；
+     * 26.3 换成了只覆盖 16x16 凹槽的精灵，在 1.4.1 的美术下看起来会缩向左上。
+     * 我们的屏幕因此自行绘制旧式光效，并由 SlotHighlightMixin 取消原版那两层。
+     */
+    public static void paintSlotHighlight(GuiGraphicsExtractor graphics, int leftPos, int topPos, Slot slot) {
+        if (slot == null || !slot.isHighlightable()) {
+            return;
+        }
+        graphics.fill(leftPos + slot.x - 1, topPos + slot.y - 1,
+                leftPos + slot.x + 17, topPos + slot.y + 17, SLOT_HIGHLIGHT);
     }
 
     public static boolean onScreenClicked(Screen screen, double mouseX, double mouseY, int button) {

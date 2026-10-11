@@ -3,6 +3,7 @@ package dev.fallingcloud.betterinventory.client.screen;
 import dev.fallingcloud.betterinventory.BetterInventory;
 import dev.fallingcloud.betterinventory.BetterInventoryConfig;
 import dev.fallingcloud.betterinventory.BetterInventoryLayout;
+import dev.fallingcloud.betterinventory.client.ClientHooks;
 import dev.fallingcloud.betterinventory.client.ClientTheme;
 import dev.fallingcloud.betterinventory.client.CompatButtons;
 import dev.fallingcloud.betterinventory.client.CreativeInventory;
@@ -209,6 +210,7 @@ public class BetterInventoryScreen extends AbstractContainerScreen<BetterInvento
                 }
             }
         }
+        ClientHooks.paintSlotHighlight(graphics, leftPos, topPos, hoveredSlot);
     }
 
     private void renderFurnace(GuiGraphicsExtractor graphics, int panelX, int panelY) {

@@ -1,6 +1,7 @@
 package dev.fallingcloud.betterinventory.client.screen;
 
 import dev.fallingcloud.betterinventory.BetterInventory;
+import dev.fallingcloud.betterinventory.client.ClientHooks;
 import dev.fallingcloud.betterinventory.client.ClientTheme;
 import dev.fallingcloud.betterinventory.client.FtbSidebarCompat;
 import dev.fallingcloud.betterinventory.data.TabSettings;
@@ -85,6 +86,7 @@ public class BackpackScreen extends AbstractContainerScreen<BackpackMenu> {
             graphics.fill(x, y, x + 162, y + 54, BOARD_COLOR);
             border(graphics, x, y, 162, 54, BOARD_EDGE);
         }
+        ClientHooks.paintSlotHighlight(graphics, leftPos, topPos, hoveredSlot);
     }
 
     @Override

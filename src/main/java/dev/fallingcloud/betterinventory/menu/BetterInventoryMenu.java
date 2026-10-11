@@ -183,7 +183,8 @@ public class BetterInventoryMenu extends AbstractContainerMenu {
         // 102-104 pack ability upgrades
         for (int i = 0; i < 3; i++) {
             SlotItemHandler slot = new SlotItemHandler(new HandlerItemStore(loadout.packUpgrades), i,
-                    BetterInventoryLayout.RIGHT_A_X + BetterInventoryLayout.SLOT_OFF + 22,
+                    // 1.4.1 硬编码 330（= 右侧面板 312 + 18）；曾误写 +22 导致图标与框错位 4px。
+                    BetterInventoryLayout.RIGHT_A_X + BetterInventoryLayout.SLOT_OFF + 18,
                     BetterInventoryLayout.MAIN_Y + BetterInventoryLayout.SLOT_OFF + i * 18) {
                 @Override
                 public boolean isActive() {

@@ -27,7 +27,8 @@
                    "LivingEntityHandItemMixin",
                    "MouseScrollMixin",
                    "PlayerHandItemMixin",
-                   "PlayerModelPassMixin"
+                   "PlayerModelPassMixin",
+                   "SlotHighlightMixin"
                ],
     "injectors":  {
                        "defaultRequire":  1
