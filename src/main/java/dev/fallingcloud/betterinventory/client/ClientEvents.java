@@ -1,61 +1,51 @@
 package dev.fallingcloud.betterinventory.client;
 
-import net.minecraft.client.Minecraft;
-import dev.fallingcloud.betterinventory.net.BetterInventoryPayloads;
-import dev.fallingcloud.betterinventory.shim.PacketDistributor;
+import dev.fallingcloud.betterinventory.BetterInventory;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
+import net.fabricmc.fabric.api.client.screen.v1.ScreenMouseEvents;
+import net.fabricmc.fabric.api.event.Event;
+import net.fabricmc.fabric.api.event.player.AttackBlockCallback;
+import net.fabricmc.fabric.api.event.player.AttackEntityCallback;
+import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
+import net.minecraft.client.gui.screens.inventory.InventoryScreen;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.InteractionResult;
 
 /**
- * Client-side tick and render hooks.
- *
- * <p>Alt + scroll cycling of the offhand carousel is handled by
- * {@code mixin.MouseScrollMixin}, which injects into MouseHandler.onScroll.
- * This class only tracks the Alt key and commits the pending selection on
- * release.
- *
- * <p>Replacing the vanilla survival inventory screen is handled by
- * {@code mixin.GuiSetScreenMixin} (registered under {@code client} in
- * betterinventory.mixins.json), not by this class - there is no
- * onScreenOpening hook here, and none is needed.
+ * 1.4.1 client event wiring: tick phases, screen render/click hooks, attack
+ * hooks and the ClientSelfTest tick.
  */
 public final class ClientEvents {
+    private static final Identifier OPEN_WINDOW = BetterInventory.id("open_tool_display_window");
+    private static final Identifier CLOSE_WINDOW = BetterInventory.id("close_tool_display_window");
+
     private ClientEvents() {}
 
-    public static void onClientTick(Minecraft client) {
-        if (BetterInventoryClient.TOGGLE_INVENTORY_MODE.consumeClick()) {
-            InventoryModeToggle.toggle(client);
-        }
-        if (client.player == null) {
-            ClientHudState.selectorOpen = false;
-            ClientHudState.progress = 0;
-            ClientHudState.progressO = 0;
-            return;
-        }
-        boolean down = BetterInventoryClient.OFFHAND_SELECTOR.isDown() && client.gui.screen() == null;
-        var loadout = ClientHudState.loadout(client);
-        if (down && !ClientHudState.selectorOpen) {
-            ClientHudState.pendingIndex = loadout.activeOffhand;
-        }
-        if (!down && ClientHudState.selectorOpen) {
-            if (ClientHudState.pendingIndex != loadout.activeOffhand) {
-                PacketDistributor.sendToServer(new BetterInventoryPayloads.SelectOffhand(ClientHudState.pendingIndex));
-                loadout.activeOffhand = ClientHudState.pendingIndex;
+    public static void register() {
+        ClientTickEvents.END_CLIENT_TICK.addPhaseOrdering(OPEN_WINDOW, Event.DEFAULT_PHASE);
+        ClientTickEvents.END_CLIENT_TICK.addPhaseOrdering(Event.DEFAULT_PHASE, CLOSE_WINDOW);
+        ClientTickEvents.END_CLIENT_TICK.register(OPEN_WINDOW, client -> ClientHooks.openToolDisplayWindow());
+        ClientTickEvents.END_CLIENT_TICK.register(client -> ClientHooks.onClientTick());
+        ClientTickEvents.END_CLIENT_TICK.register(CLOSE_WINDOW, client -> ClientHooks.closeToolDisplayWindow());
+        ScreenEvents.AFTER_INIT.register((client, screen, scaledWidth, scaledHeight) -> {
+            if (screen instanceof InventoryScreen || screen instanceof CreativeModeInventoryScreen) {
+                // 26.3: afterRender -> afterExtract (render pipeline is extract-based).
+                ScreenEvents.afterExtract(screen).register((s, graphics, mouseX, mouseY, tickDelta) ->
+                        ClientHooks.onScreenRendered(s, graphics, mouseX, mouseY));
+                // 26.3: the callback now receives a MouseButtonEvent instead of x/y/button.
+                ScreenMouseEvents.allowMouseClick(screen).register((s, event) ->
+                        !ClientHooks.onScreenClicked(s, event.x(), event.y(), event.button()));
             }
-        }
-        ClientHudState.selectorOpen = down;
-        ClientHudState.tick(client);
-    }
-
-    /**
-     * Zoomed hover-item rendering.
-     *
-     * <p>TODO: wire this to {@code ZoomRender.draw(graphics, cx, cy, stack)} using the
-     * hovered slot resolved from the current screen. The original did this from a
-     * ScreenEvent.Render.Post hook, which Fabric cannot replace - it needs a mixin.
-     */
-    public static void onHudRender(Minecraft client, net.minecraft.client.gui.GuiGraphicsExtractor graphics) {
-        if (!dev.fallingcloud.betterinventory.BetterInventoryConfig.ZOOM_ENABLED.get()
-                || client.player == null) {
-            return;
-        }
+        });
+        AttackEntityCallback.EVENT.register((player, level, hand, entity, hitResult) -> {
+            ClientHooks.onAttack(player);
+            return InteractionResult.PASS;
+        });
+        AttackBlockCallback.EVENT.register((player, level, hand, pos, direction) -> {
+            ClientHooks.onLeftClickBlock(player, level, pos);
+            return InteractionResult.PASS;
+        });
+        // TODO(F-2): ClientSelfTest.enabled() 时注册 ClientSelfTest::tick。
     }
 }

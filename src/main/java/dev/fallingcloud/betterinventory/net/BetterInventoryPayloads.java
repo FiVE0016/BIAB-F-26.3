@@ -18,6 +18,7 @@ import java.util.Optional;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -82,6 +83,18 @@ public final class BetterInventoryPayloads {
 
         @Override
         public Type<SelectOffhand> type() {
+            return TYPE;
+        }
+    }
+
+    /** Marks/unmarks an entity type as safe (LoadoutFiller never replaces it). */
+    public record ToggleSafeEntity(Identifier entityType) implements CustomPacketPayload {
+        public static final Type<ToggleSafeEntity> TYPE = new Type<>(BetterInventory.id("toggle_safe_entity"));
+        public static final StreamCodec<RegistryFriendlyByteBuf, ToggleSafeEntity> CODEC =
+                StreamCodec.composite(Identifier.STREAM_CODEC, ToggleSafeEntity::entityType, ToggleSafeEntity::new);
+
+        @Override
+        public Type<ToggleSafeEntity> type() {
             return TYPE;
         }
     }
@@ -216,6 +229,25 @@ public final class BetterInventoryPayloads {
                     // Mirror the newly selected stored item into the real offhand slot.
                     player.getInventory().setItem(net.minecraft.world.entity.player.Inventory.SLOT_OFFHAND, loadout.offhandStore.getStackInSlot(index));
                     loadout.dirty = true;
+                }
+            }
+        });
+
+        registrar.playToServer(ToggleSafeEntity.TYPE, ToggleSafeEntity.CODEC, (payload, context) -> {
+            if (context.player() instanceof ServerPlayer player) {
+                if (BuiltInRegistries.ENTITY_TYPE.containsKey(payload.entityType())) {
+                    PlayerLoadout loadout = PlayerLoadout.existing(player);
+                    if (loadout != null) {
+                        boolean nowSafe = loadout.safeEntities.add(payload.entityType());
+                        if (!nowSafe) {
+                            loadout.safeEntities.remove(payload.entityType());
+                        }
+                        loadout.dirty = true;
+                        player.sendOverlayMessage(Component.translatable(
+                                nowSafe ? "betterinventory.safe_entity.added" : "betterinventory.safe_entity.removed",
+                                // 26.3: Registry.get(Identifier) now yields a Holder.Reference.
+                                BuiltInRegistries.ENTITY_TYPE.get(payload.entityType()).get().value().getDescription()));
+                    }
                 }
             }
         });
