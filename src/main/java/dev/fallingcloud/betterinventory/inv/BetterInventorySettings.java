@@ -3,41 +3,67 @@ package dev.fallingcloud.betterinventory.inv;
 import dev.fallingcloud.betterinventory.data.SettingKey;
 import dev.fallingcloud.betterinventory.data.TabSettings;
 import dev.fallingcloud.betterinventory.item.BackpackItem;
-import dev.fallingcloud.betterinventory.registry.ModAttachments;
+import java.util.Optional;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * Resolves effective settings for a tab, honoring the "share between backpacks"
- * flags. pickaxe2 lists, locks and upgrade toggles are always per-tab.
+ * 1.4.1 settings access: per-tab settings live on the default tab (player
+ * attachment), on the equipped backpack's component (backpack tabs) or in
+ * heldSettings when pack-free storage is active.
  */
 public final class BetterInventorySettings {
     private BetterInventorySettings() {}
 
     public static PlayerLoadout of(Player player) {
-        return ModAttachments.get(player);
+        return PlayerLoadout.of(player);
     }
 
-    /** The tab's own settings storage (attachment for tab 0, backpack component otherwise). */
     public static TabSettings raw(Player player, int tab) {
         PlayerLoadout loadout = of(player);
         if (tab == 0) {
             return loadout.defaultTab;
         }
-        ItemStack pack = loadout.backpack(tab);
+        if (loadout.packFree) {
+            return loadout.heldSettings;
+        }
+        ItemStack pack = loadout.backpack();
         return pack.isEmpty() ? TabSettings.DEFAULT : BackpackItem.settings(pack);
+    }
+
+    public static TabSettings view(Player player, int tab) {
+        TabSettings settings = raw(player, tab);
+        return tab == 0 ? settings : settings.sliceLocks(PlayerLoadout.pageBase(tab), PlayerLoadout.PAGE_SIZE + 27);
     }
 
     public static void setRaw(Player player, int tab, TabSettings settings) {
         PlayerLoadout loadout = of(player);
         if (tab == 0) {
             loadout.defaultTab = settings;
+        } else if (loadout.packFree) {
+            loadout.heldSettings = settings;
         } else {
-            ItemStack pack = loadout.backpack(tab);
+            ItemStack pack = loadout.backpack();
             if (!pack.isEmpty()) {
                 BackpackItem.setSettings(pack, settings);
             }
         }
+        loadout.dirty = true;
+    }
+
+    public static void setLockAt(Player player, int tab, int viewIndex, Optional<Identifier> item) {
+        int slot = tab == 0 ? viewIndex : PlayerLoadout.pageBase(tab) + viewIndex;
+        setRaw(player, tab, raw(player, tab).withLock(slot, item));
+    }
+
+    public static boolean upgradeEnabled(Player player, String upgradeId) {
+        return of(player).defaultTab.upgradeEnabled(upgradeId);
+    }
+
+    public static void setUpgradeEnabled(Player player, String upgradeId, boolean enabled) {
+        PlayerLoadout loadout = of(player);
+        loadout.defaultTab = loadout.defaultTab.withUpgradeToggle(upgradeId, enabled);
         loadout.dirty = true;
     }
 
@@ -46,48 +72,31 @@ public final class BetterInventorySettings {
     }
 
     public static boolean gatherHub(Player player, int tab) {
-        PlayerLoadout loadout = of(player);
-        return loadout.sharedKeys.contains(SettingKey.GATHER_HUB)
-                ? loadout.shared.gatherHub()
-                : raw(player, tab).gatherHub();
+        return of(player).shared.gatherHub();
     }
 
     public static boolean autoRefill(Player player, int tab) {
-        PlayerLoadout loadout = of(player);
-        return loadout.sharedKeys.contains(SettingKey.AUTO_REFILL)
-                ? loadout.shared.autoRefill()
-                : raw(player, tab).autoRefill();
+        return of(player).shared.autoRefill();
     }
 
     public static TabSettings.CombatPref combat(Player player, int tab) {
-        PlayerLoadout loadout = of(player);
-        return loadout.sharedKeys.contains(SettingKey.COMBAT_WEAPON)
-                ? loadout.shared.combat()
-                : raw(player, tab).combat();
+        return of(player).shared.combat();
     }
 
-    /** Applies one of the shareable settings to the correct store (shared or per-tab). */
     public static void applySetting(Player player, int tab, SettingKey key, int value) {
         PlayerLoadout loadout = of(player);
-        boolean shared = loadout.sharedKeys.contains(key);
-        TabSettings target = shared ? loadout.shared : raw(player, tab);
-        TabSettings updated = switch (key) {
-            case GATHER_HUB -> target.withGatherHub(value != 0);
-            case AUTO_REFILL -> target.withAutoRefill(value != 0);
-            case COMBAT_WEAPON -> target.withCombat(TabSettings.CombatPref.values()[Math.floorMod(value, TabSettings.CombatPref.values().length)]);
+        loadout.shared = switch (key) {
+            case GATHER_HUB -> loadout.shared.withGatherHub(value != 0);
+            case AUTO_REFILL -> loadout.shared.withAutoRefill(value != 0);
+            case COMBAT_WEAPON -> loadout.shared.withCombat(
+                    TabSettings.CombatPref.values()[Math.floorMod(value, TabSettings.CombatPref.values().length)]);
         };
-        if (shared) {
-            loadout.shared = updated;
-            loadout.dirty = true;
-        } else {
-            setRaw(player, tab, updated);
-        }
+        loadout.dirty = true;
     }
 
     public static void setShared(Player player, SettingKey key, boolean shared, int sourceTab) {
         PlayerLoadout loadout = of(player);
         if (shared) {
-            // Adopt the current tab's value as the shared value.
             TabSettings source = raw(player, sourceTab);
             loadout.shared = switch (key) {
                 case GATHER_HUB -> loadout.shared.withGatherHub(source.gatherHub());
