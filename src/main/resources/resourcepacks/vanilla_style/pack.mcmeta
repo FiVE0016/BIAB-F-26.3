@@ -1,6 +1,14 @@
 {
   "pack": {
     "description": "Better Inventory items, backpacks and GUIs in the classic vanilla look",
-    "pack_format": 34
+    "pack_format": 97,
+    "min_format": [
+      97,
+      0
+    ],
+    "max_format": [
+      999,
+      0
+    ]
   }
 }
