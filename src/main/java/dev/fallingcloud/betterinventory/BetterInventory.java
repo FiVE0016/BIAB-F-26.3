@@ -4,6 +4,7 @@ import dev.fallingcloud.betterinventory.logic.FabricCommonEvents;
 import dev.fallingcloud.betterinventory.logic.LoadoutStorage;
 import dev.fallingcloud.betterinventory.logic.ItemDefaults;
 import dev.fallingcloud.betterinventory.logic.LootTradeEvents;
+import dev.fallingcloud.betterinventory.logic.ModCommands;
 import dev.fallingcloud.betterinventory.shim.RegisterPayloadHandlersEvent;
 import dev.fallingcloud.betterinventory.net.BetterInventoryPayloads;
 import dev.fallingcloud.betterinventory.registry.ModBlocks;
@@ -50,6 +51,7 @@ public final class BetterInventory implements ModInitializer {
         BetterInventoryPayloads.register(new RegisterPayloadHandlersEvent());
         FabricCommonEvents.register();
         LootTradeEvents.register();
+        ModCommands.register();
         LoadoutStorage.register();
 
     }
