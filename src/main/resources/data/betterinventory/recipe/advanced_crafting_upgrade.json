@@ -7,9 +7,15 @@
     "TNT"
   ],
   "key": {
-    "T": "minecraft:crafting_table",
-    "U": "betterinventory:crafting_upgrade",
-    "N": "minecraft:netherite_ingot"
+    "T": {
+      "item": "minecraft:crafting_table"
+    },
+    "U": {
+      "item": "betterinventory:crafting_upgrade"
+    },
+    "N": {
+      "item": "minecraft:netherite_ingot"
+    }
   },
   "result": {
     "id": "betterinventory:advanced_crafting_upgrade",

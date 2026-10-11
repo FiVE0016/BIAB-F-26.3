@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " M ",
+    "MUM",
+    " M "
+  ],
+  "key": {
+    "M": {
+      "item": "minecraft:diamond"
+    },
+    "U": {
+      "item": "betterinventory:upgrade_pickup_2"
+    }
+  },
+  "result": {
+    "id": "betterinventory:upgrade_pickup_3",
+    "count": 1
+  }
+}

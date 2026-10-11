@@ -10,6 +10,7 @@ import dev.fallingcloud.betterinventory.registry.ModComponents;
 import dev.fallingcloud.betterinventory.registry.ModCreativeTab;
 import dev.fallingcloud.betterinventory.registry.ModItems;
 import dev.fallingcloud.betterinventory.registry.ModMenus;
+import dev.fallingcloud.betterinventory.registry.ModRecipes;
 import net.fabricmc.api.ModInitializer;
 import net.minecraft.resources.Identifier;
 import org.slf4j.Logger;
@@ -39,6 +40,7 @@ public final class BetterInventory implements ModInitializer {
         ModBlocks.BLOCKS.register(null);
         ModBlocks.BLOCK_ENTITIES.register(null);
         ModComponents.COMPONENTS.register(null);
+        ModRecipes.RECIPES.register(null);
         // ModMenus registers via static final fields; touch it to force init.
         ModMenus.LOADOUT.getClass();
         ModCreativeTab.TABS.register(null);

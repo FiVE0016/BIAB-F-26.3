@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "FFF",
+    "FUF",
+    "FBF"
+  ],
+  "key": {
+    "F": {
+      "item": "minecraft:furnace"
+    },
+    "U": {
+      "item": "betterinventory:advanced_crafting_upgrade"
+    },
+    "B": {
+      "item": "minecraft:blast_furnace"
+    }
+  },
+  "result": {
+    "id": "betterinventory:furnace_crafting_upgrade",
+    "count": 1
+  }
+}

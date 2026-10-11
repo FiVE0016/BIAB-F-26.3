@@ -1,14 +1,27 @@
 {
-  "type": "minecraft:crafting_shaped",
+  "type": "betterinventory:backpack_upgrade",
   "category": "misc",
   "pattern": [
-    "MMM",
-    "MBM",
-    "MMM"
+    " B ",
+    "S1S",
+    "LDL"
   ],
   "key": {
-    "M": "minecraft:iron_ingot",
-    "B": "betterinventory:backpack_1"
+    "B": {
+      "item": "minecraft:bundle"
+    },
+    "S": {
+      "item": "minecraft:string"
+    },
+    "1": {
+      "item": "betterinventory:backpack_1"
+    },
+    "L": {
+      "item": "minecraft:leather"
+    },
+    "D": {
+      "item": "minecraft:diamond"
+    }
   },
   "result": {
     "id": "betterinventory:backpack_2",

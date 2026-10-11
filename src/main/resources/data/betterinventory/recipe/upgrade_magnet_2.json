@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " M ",
+    "MUM",
+    " M "
+  ],
+  "key": {
+    "M": {
+      "item": "minecraft:gold_ingot"
+    },
+    "U": {
+      "item": "betterinventory:upgrade_magnet"
+    }
+  },
+  "result": {
+    "id": "betterinventory:upgrade_magnet_2",
+    "count": 1
+  }
+}

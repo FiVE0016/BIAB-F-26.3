@@ -2,14 +2,20 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "pattern": [
-    "SLS",
-    "LCL",
-    "LLL"
+    " S ",
+    "WCW",
+    "WWW"
   ],
   "key": {
-    "S": "minecraft:string",
-    "L": "minecraft:leather",
-    "C": "minecraft:chest"
+    "S": {
+      "item": "minecraft:string"
+    },
+    "W": {
+      "tag": "minecraft:wool"
+    },
+    "C": {
+      "item": "minecraft:chest"
+    }
   },
   "result": {
     "id": "betterinventory:backpack_1",

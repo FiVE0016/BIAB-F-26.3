@@ -1,14 +1,24 @@
 {
-  "type": "minecraft:crafting_shaped",
+  "type": "betterinventory:backpack_upgrade",
   "category": "misc",
   "pattern": [
-    "MMM",
-    "MBM",
-    "MMM"
+    "HLH",
+    "C3C",
+    "LLL"
   ],
   "key": {
-    "M": "minecraft:diamond",
-    "B": "betterinventory:backpack_3"
+    "H": {
+      "item": "minecraft:shulker_shell"
+    },
+    "L": {
+      "item": "minecraft:leather"
+    },
+    "C": {
+      "item": "minecraft:chain"
+    },
+    "3": {
+      "item": "betterinventory:backpack_3"
+    }
   },
   "result": {
     "id": "betterinventory:backpack_4",

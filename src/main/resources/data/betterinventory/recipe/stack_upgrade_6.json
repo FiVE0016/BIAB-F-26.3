@@ -7,8 +7,12 @@
     "MMM"
   ],
   "key": {
-    "M": "minecraft:diamond",
-    "U": "betterinventory:stack_upgrade_5"
+    "M": {
+      "item": "minecraft:diamond"
+    },
+    "U": {
+      "item": "betterinventory:stack_upgrade_5"
+    }
   },
   "result": {
     "id": "betterinventory:stack_upgrade_6",

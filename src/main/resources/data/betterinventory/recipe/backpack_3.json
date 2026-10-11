@@ -1,14 +1,27 @@
 {
-  "type": "minecraft:crafting_shaped",
+  "type": "betterinventory:backpack_upgrade",
   "category": "misc",
   "pattern": [
-    "MMM",
-    "MBM",
-    "MMM"
+    "LKL",
+    "I2I",
+    "LNL"
   ],
   "key": {
-    "M": "minecraft:gold_ingot",
-    "B": "betterinventory:backpack_2"
+    "L": {
+      "item": "minecraft:leather"
+    },
+    "K": {
+      "item": "betterinventory:travelers_knot"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "2": {
+      "item": "betterinventory:backpack_2"
+    },
+    "N": {
+      "item": "minecraft:netherite_ingot"
+    }
   },
   "result": {
     "id": "betterinventory:backpack_3",

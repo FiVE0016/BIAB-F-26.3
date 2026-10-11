@@ -7,9 +7,15 @@
     "PPP"
   ],
   "key": {
-    "P": "minecraft:paper",
-    "I": "minecraft:iron_ingot",
-    "C": "minecraft:chest"
+    "P": {
+      "item": "minecraft:paper"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "C": {
+      "item": "minecraft:chest"
+    }
   },
   "result": {
     "id": "betterinventory:stack_upgrade_1",

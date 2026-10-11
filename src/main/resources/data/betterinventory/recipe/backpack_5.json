@@ -1,14 +1,30 @@
 {
-  "type": "minecraft:crafting_shaped",
+  "type": "betterinventory:backpack_upgrade",
   "category": "misc",
   "pattern": [
-    "MMM",
-    "MBM",
-    "MMM"
+    "INI",
+    "E4E",
+    "BDB"
   ],
   "key": {
-    "M": "minecraft:netherite_ingot",
-    "B": "betterinventory:backpack_4"
+    "I": {
+      "item": "minecraft:netherite_ingot"
+    },
+    "N": {
+      "item": "minecraft:nether_star"
+    },
+    "E": {
+      "item": "minecraft:echo_shard"
+    },
+    "4": {
+      "item": "betterinventory:backpack_4"
+    },
+    "B": {
+      "item": "minecraft:obsidian"
+    },
+    "D": {
+      "item": "minecraft:dragon_breath"
+    }
   },
   "result": {
     "id": "betterinventory:backpack_5",

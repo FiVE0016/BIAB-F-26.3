@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " M ",
+    "MUM",
+    " M "
+  ],
+  "key": {
+    "M": {
+      "item": "minecraft:emerald"
+    },
+    "U": {
+      "item": "betterinventory:upgrade_feeding_3"
+    }
+  },
+  "result": {
+    "id": "betterinventory:upgrade_feeding_4",
+    "count": 1
+  }
+}
