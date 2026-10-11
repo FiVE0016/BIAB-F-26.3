@@ -6,6 +6,7 @@ import dev.fallingcloud.betterinventory.data.TabSettings;
 import dev.fallingcloud.betterinventory.inv.BetterInventorySettings;
 import dev.fallingcloud.betterinventory.inv.PlayerLoadout;
 import dev.fallingcloud.betterinventory.item.BackpackItem;
+import dev.fallingcloud.betterinventory.logic.ArmorSwapService;
 import dev.fallingcloud.betterinventory.logic.SyncService;
 import dev.fallingcloud.betterinventory.logic.TabService;
 import dev.fallingcloud.betterinventory.menu.BackpackMenu;
@@ -95,6 +96,30 @@ public final class BetterInventoryPayloads {
 
         @Override
         public Type<ToggleSafeEntity> type() {
+            return TYPE;
+        }
+    }
+
+    /** Swaps the worn armor set with the loadout's stored armor (1.4.1). */
+    public record SwapArmor() implements CustomPacketPayload {
+        public static final Type<SwapArmor> TYPE = new Type<>(BetterInventory.id("swap_armor"));
+        public static final StreamCodec<RegistryFriendlyByteBuf, SwapArmor> CODEC =
+                StreamCodec.unit(new SwapArmor());
+
+        @Override
+        public Type<SwapArmor> type() {
+            return TYPE;
+        }
+    }
+
+    /** Turns the backpack screen to another page (1.4.1). */
+    public record SetBackpackPage(int page) implements CustomPacketPayload {
+        public static final Type<SetBackpackPage> TYPE = new Type<>(BetterInventory.id("set_backpack_page"));
+        public static final StreamCodec<RegistryFriendlyByteBuf, SetBackpackPage> CODEC =
+                StreamCodec.composite(ByteBufCodecs.VAR_INT, SetBackpackPage::page, SetBackpackPage::new);
+
+        @Override
+        public Type<SetBackpackPage> type() {
             return TYPE;
         }
     }
@@ -217,6 +242,19 @@ public final class BetterInventoryPayloads {
                     menu.returnCraftingGrid(player);
                 }
                 loadout.dirty = true;
+            }
+        });
+
+        registrar.playToServer(SwapArmor.TYPE, SwapArmor.CODEC, (payload, context) -> {
+            if (context.player() instanceof ServerPlayer player) {
+                ArmorSwapService.swap(player);
+            }
+        });
+
+        registrar.playToServer(SetBackpackPage.TYPE, SetBackpackPage.CODEC, (payload, context) -> {
+            if (context.player() instanceof ServerPlayer player
+                    && player.containerMenu instanceof BackpackMenu menu) {
+                menu.setPage(payload.page());
             }
         });
 
