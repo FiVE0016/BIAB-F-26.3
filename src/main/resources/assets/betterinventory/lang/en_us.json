@@ -1,4 +1,4 @@
-﻿{
+{
   "itemGroup.betterinventory": "Better Inventory",
   "container.betterinventory.inventory": "Inventory",
   "container.betterinventory.settings": "Inventory Settings",
@@ -130,8 +130,13 @@
   "betterinventory.configuration.feedingThreshold.tooltip": "The Level V Feeding Upgrade eats when hunger is at or below this (out of 20). Each lower level triggers 3 points later.",
   "betterinventory.configuration.strongLockedSlots": "Mark Locked Crafting Cells",
   "betterinventory.configuration.strongLockedSlots.tooltip": "Draw an x on crafting cells your upgrade has not unlocked. Off uses a plain faint dim.",
+  "betterinventory.configuration.showEffects": "Show Active Effects",
+  "betterinventory.configuration.showEffects.tooltip": "Show your active effects as a row of icons above the player view. Hover one for its name and the time left.",
   "betterinventory.configuration.showToolInHand": "Show Auto-Tool In Hand",
   "betterinventory.configuration.toolLingerTicks": "Tool HUD Linger (Ticks)",
+  "betterinventory.configuration.backpack": "Worn Backpack",
+  "betterinventory.configuration.showWornBackpack": "Show Backpack On Back",
+  "betterinventory.configuration.showWornBackpack.tooltip": "Draw your highest equipped backpack on your back, in third person and on other players. Turn off if another mod already draws a pack there, or you would rather not see one.",
   "item.betterinventory.travelers_knot": "Traveler's Knot",
   "item.betterinventory.travelers_knot.desc": "A strap worn smooth by long roads",
   "item.betterinventory.travelers_knot.source": "Found in structure chests, or traded by leatherworkers and wandering traders",
@@ -148,12 +153,5 @@
   "screen.betterinventory.trash": "Trash - anything left in here is destroyed when you close the inventory",
   "screen.betterinventory.toolbox": "Toolbox - Slate Building uses the tools and upgrades in the toolbox kept here",
   "betterinventory.configuration.offhandKeyMigrated": "Carousel Key Moved Off Left Alt",
-  "betterinventory.configuration.offhandKeyMigrated.tooltip": "Set once the offhand carousel key has been moved from Left Alt to Right Alt for Slate Building (which uses Left Alt). Bookkeeping only - change the key itself in Controls.",
-  "item.betterinventory.backpack.level": "Level %s - %s upgrade slots",
-  "item.betterinventory.upgrade_pickup.desc": "Items this backpack knows are picked up straight into it",
-  "item.betterinventory.upgrade_refill.desc": "Hotbar auto-refill may pull from this backpack",
-  "item.betterinventory.upgrade_void.desc": "Destroys overflow of items locked in this backpack",
-  "key.category.betterinventory.inventory": "Better Inventory",
-  "screen.betterinventory.tab.empty": "Backpack slot %s is empty"
+  "betterinventory.configuration.offhandKeyMigrated.tooltip": "Set once the offhand carousel key has been moved from Left Alt to Right Alt for Slate Building (which uses Left Alt). Bookkeeping only - change the key itself in Controls."
 }
-
